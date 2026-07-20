@@ -67,23 +67,18 @@
             });
 
             var separatorToolStripMenuItem = new ToolStripSeparator();
-            versionToolStripMenuItem = new ToolStripMenuItem("バージョン: -");
-            copyrightToolStripMenuItem = new ToolStripMenuItem("Copyright: -");
+            var aboutToolStripMenuItem = new ToolStripMenuItem("バージョン情報", null, About_Click);
             var infoSeparatorToolStripMenuItem = new ToolStripSeparator();
             var exitToolStripMenuItem = new ToolStripMenuItem("終了", null, Exit_Click);
-
-            versionToolStripMenuItem.Enabled = false;
-            copyrightToolStripMenuItem.Enabled = false;
 
             contextMenuStrip.Items.AddRange(new ToolStripItem[] {
                 imageToolStripMenuItem,
                 sizeToolStripMenuItem,
                 rotationToolStripMenuItem,
                 separatorToolStripMenuItem,
-                exitToolStripMenuItem,
+                aboutToolStripMenuItem,
                 infoSeparatorToolStripMenuItem,
-                versionToolStripMenuItem,
-                copyrightToolStripMenuItem
+                exitToolStripMenuItem
             });
 
             // Form1
@@ -115,7 +110,5 @@
         private ToolStripMenuItem rotate90ToolStripMenuItem;
         private ToolStripMenuItem rotate180ToolStripMenuItem;
         private ToolStripMenuItem rotate270ToolStripMenuItem;
-        private ToolStripMenuItem versionToolStripMenuItem;
-        private ToolStripMenuItem copyrightToolStripMenuItem;
     }
 }

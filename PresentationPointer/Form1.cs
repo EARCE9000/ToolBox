@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Diagnostics;
 
 namespace PresentationPointer
 {
@@ -33,7 +34,6 @@ namespace PresentationPointer
 
             InitializeSpeechBubbleEditor();
             contextMenuStrip.Opening += ContextMenuStrip_Opening;
-            UpdateInfoMenuTexts();
         }
 
         private void Form1_Load(object? sender, EventArgs e)
@@ -384,7 +384,6 @@ namespace PresentationPointer
         private void ContextMenuStrip_Opening(object? sender, System.ComponentModel.CancelEventArgs e)
         {
             UpdateContextMenuChecks();
-            UpdateInfoMenuTexts();
         }
 
         private void UpdateContextMenuChecks()
@@ -402,25 +401,22 @@ namespace PresentationPointer
             rotate270ToolStripMenuItem.Checked = currentRotation == 270;
         }
 
-        private void UpdateInfoMenuTexts()
-        {
-            string buildTimestamp = Assembly.GetExecutingAssembly()
-                .GetCustomAttributes<AssemblyMetadataAttribute>()
-                .FirstOrDefault(x => x.Key == "BuildTimestamp")?.Value
-                ?? Application.ProductVersion;
-
-            string buildDate = buildTimestamp.Split(' ')[0];
-            versionToolStripMenuItem.Text = $"Build: {buildDate}";
-
-            string copyrightText = Assembly.GetExecutingAssembly()
-                .GetCustomAttribute<AssemblyCopyrightAttribute>()?.Copyright
-                ?? "EARCE.NET";
-            copyrightToolStripMenuItem.Text = $"Copyright: {copyrightText}";
-        }
-
         private void Exit_Click(object? sender, EventArgs e)
         {
             Close();
+        }
+
+        private void About_Click(object? sender, EventArgs e)
+        {
+            // Temporarily disable TopMost to allow dialog to appear on top
+            bool wasTopMost = TopMost;
+            TopMost = false;
+
+            using var aboutForm = new AboutForm();
+            aboutForm.ShowDialog(this);
+
+            // Restore TopMost setting
+            TopMost = wasTopMost;
         }
     }
 }
