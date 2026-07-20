@@ -428,3 +428,4 @@ FodyWeavers.xsd
 *.msm
 *.msp
 /PresentationPointer/publish-all.bat
+/PresentationPointer/publish-all.ps1
