@@ -1,6 +1,8 @@
 using System.Diagnostics;
 using System.Reflection;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace ScreenAnnotation
 {
@@ -15,8 +17,10 @@ namespace ScreenAnnotation
         private Button exitButton;
         private Button clearButton;
         private Button saveButton;
+        private Button loadButton;
         private Button nextDisplayButton;
         private Button informationButton;
+        private ToolTip toolTip = new();
         private bool isDrawingRect = false;
         private Point rectStartPoint;
         private Rectangle? currentRect = null;
@@ -27,6 +31,7 @@ namespace ScreenAnnotation
         private Image? exitButtonIcon;
         private Image? clearButtonIcon;
         private Image? saveButtonIcon;
+        private Image? loadButtonIcon;
         private Image? displayChangeButtonIcon;
         private Image? informationButtonIcon;
         private ImageAnnotation? draggingImage = null;
@@ -128,6 +133,14 @@ namespace ScreenAnnotation
                 }
             }
 
+            using (var stream = assembly.GetManifestResourceStream("ScreenAnnotation.LoadButton.png"))
+            {
+                if (stream != null)
+                {
+                    loadButtonIcon = Image.FromStream(stream);
+                }
+            }
+
             using (var stream = assembly.GetManifestResourceStream("ScreenAnnotation.DisplayChange.png"))
             {
                 if (stream != null)
@@ -157,7 +170,7 @@ namespace ScreenAnnotation
             {
                 BackColor = Color.FromArgb(50, 50, 50),  // Dark gray
                 Location = new Point(10, 10),
-                Size = new Size(430, 60),
+                Size = new Size(490, 60),
                 Margin = new Padding(0)
             };
             this.Controls.Add(toolbarPanel);
@@ -207,11 +220,27 @@ namespace ScreenAnnotation
             saveButton.Click += SaveButton_Click;
             toolbarPanel.Controls.Add(saveButton);
 
+            // Create load button
+            loadButton = new Button
+            {
+                Size = new Size(50, 50),
+                Location = new Point(185, 5),
+                BackColor = Color.Transparent,
+                FlatStyle = FlatStyle.Flat,
+                Cursor = Cursors.Hand,
+                Image = loadButtonIcon,
+                ImageAlign = ContentAlignment.MiddleCenter,
+                Text = loadButtonIcon == null ? "L" : string.Empty
+            };
+            loadButton.FlatAppearance.BorderSize = 0;
+            loadButton.Click += LoadButton_Click;
+            toolbarPanel.Controls.Add(loadButton);
+
             // Create add arrow button
             addArrowButton = new Button
             {
                 Size = new Size(50, 50),
-                Location = new Point(185, 5),
+                Location = new Point(245, 5),
                 BackColor = Color.Transparent,
                 ForeColor = Color.White,
                 FlatStyle = FlatStyle.Flat,
@@ -227,7 +256,7 @@ namespace ScreenAnnotation
             addTextButton = new Button
             {
                 Size = new Size(50, 50),
-                Location = new Point(245, 5),
+                Location = new Point(305, 5),
                 BackColor = Color.Transparent,
                 ForeColor = Color.White,
                 FlatStyle = FlatStyle.Flat,
@@ -243,7 +272,7 @@ namespace ScreenAnnotation
             nextDisplayButton = new Button
             {
                 Size = new Size(50, 50),
-                Location = new Point(305, 5),
+                Location = new Point(365, 5),
                 BackColor = Color.Transparent,
                 FlatStyle = FlatStyle.Flat,
                 Cursor = Cursors.Hand,
@@ -258,7 +287,7 @@ namespace ScreenAnnotation
             informationButton = new Button
             {
                 Size = new Size(50, 50),
-                Location = new Point(365, 5),
+                Location = new Point(425, 5),
                 BackColor = Color.Transparent,
                 ForeColor = Color.White,
                 FlatStyle = FlatStyle.Flat,
@@ -270,6 +299,16 @@ namespace ScreenAnnotation
             informationButton.FlatAppearance.BorderSize = 0;
             informationButton.Click += InformationButton_Click;
             toolbarPanel.Controls.Add(informationButton);
+
+            // ToolTips
+            toolTip.SetToolTip(exitButton,        "終了");
+            toolTip.SetToolTip(clearButton,       "全消去");
+            toolTip.SetToolTip(saveButton,        "保存（JSON）");
+            toolTip.SetToolTip(loadButton,        "読み込み（JSON）");
+            toolTip.SetToolTip(addArrowButton,    "矢印を追加");
+            toolTip.SetToolTip(addTextButton,     "吹き出しを追加");
+            toolTip.SetToolTip(nextDisplayButton, "ディスプレイを切り替え");
+            toolTip.SetToolTip(informationButton, "バージョン情報");
 
             // Mouse events
             this.MouseDown += AnnotationForm_MouseDown;
@@ -315,6 +354,57 @@ namespace ScreenAnnotation
                 this.Height / 2 - 75
             );
             CreateTextPanel(centerLocation);
+        }
+
+        private void LoadButton_Click(object? sender, EventArgs e)
+        {
+            LoadFromJson();
+        }
+
+        private void LoadFromJson()
+        {
+            using var openDialog = new OpenFileDialog
+            {
+                Filter = "JSON files (*.json)|*.json|All files (*.*)|*.*",
+                DefaultExt = "json"
+            };
+
+            if (openDialog.ShowDialog() != DialogResult.OK) return;
+
+            try
+            {
+                string json = System.IO.File.ReadAllText(openDialog.FileName);
+                var data = JsonSerializer.Deserialize<AnnotationSaveData>(json);
+                if (data == null)
+                {
+                    MessageBox.Show("ファイルの読み込みに失敗しました。", "ScreenAnnotation - エラー", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+
+                ClearAll();
+
+                // Restore arrows
+                foreach (var arrow in data.Arrows)
+                {
+                    if (arrowImage != null)
+                    {
+                        imageAnnotations.Add(new ImageAnnotation(arrowImage, new Point(arrow.X, arrow.Y), new Size(96, 96), arrow.Number));
+                    }
+                }
+                RenumberArrows();
+
+                // Restore bubbles
+                foreach (var bubble in data.Bubbles)
+                {
+                    CreateTextPanel(new Point(bubble.X, bubble.Y), bubble.Text);
+                }
+
+                Invalidate();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error loading file: {ex.Message}", "ScreenAnnotation - エラー", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         private void NextDisplayButton_Click(object? sender, EventArgs e)
@@ -406,54 +496,53 @@ namespace ScreenAnnotation
 
         private void SaveButton_Click(object? sender, EventArgs e)
         {
-            SaveAsMarkdown();
+            SaveAsJson();
         }
 
-        private void SaveAsMarkdown()
+        private void SaveAsJson()
         {
-            if (textPanels.Count == 0)
+            if (textPanels.Count == 0 && imageAnnotations.Count == 0)
             {
-                MessageBox.Show("No annotations to save.", "ScreenAnnotation - 情報", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show("保存する注釈がありません。", "ScreenAnnotation - 情報", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
 
-            using (var saveDialog = new SaveFileDialog
+            using var saveDialog = new SaveFileDialog
             {
-                Filter = "Markdown files (*.md)|*.md|All files (*.*)|*.*",
-                DefaultExt = "md",
-                FileName = $"annotation_{DateTime.Now:yyyyMMdd_HHmmss}.md"
-            })
+                Filter = "JSON files (*.json)|*.json|All files (*.*)|*.*",
+                DefaultExt = "json",
+                FileName = $"annotation_{DateTime.Now:yyyyMMdd_HHmmss}.json"
+            };
+
+            if (saveDialog.ShowDialog() != DialogResult.OK) return;
+
+            try
             {
-                if (saveDialog.ShowDialog() == DialogResult.OK)
+                var data = new AnnotationSaveData
                 {
-                    try
+                    Generated = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
+                    Arrows = imageAnnotations.Select(a => new ArrowData
                     {
-                        var sb = new StringBuilder();
-                        sb.AppendLine("# Annotations");
-                        sb.AppendLine();
-                        sb.AppendLine($"Generated: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
-                        sb.AppendLine();
-
-                        int index = 1;
-                        foreach (var textPanel in textPanels)
-                        {
-                            sb.AppendLine($"## Annotation {index}");
-                            sb.AppendLine();
-                            sb.AppendLine($"```");
-                            sb.AppendLine(textPanel.TextBox.Text);
-                            sb.AppendLine($"```");
-                            sb.AppendLine();
-                            index++;
-                        }
-
-                        System.IO.File.WriteAllText(saveDialog.FileName, sb.ToString());
-                        MessageBox.Show($"Saved to {saveDialog.FileName}", "ScreenAnnotation - 保存完了", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    }
-                    catch (Exception ex)
+                        Number = a.Number,
+                        X = a.Location.X,
+                        Y = a.Location.Y
+                    }).ToList(),
+                    Bubbles = textPanels.Select(t => new BubbleData
                     {
-                        MessageBox.Show($"Error saving file: {ex.Message}", "ScreenAnnotation - エラー", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
-                }
+                        X = t.Panel.Location.X,
+                        Y = t.Panel.Location.Y,
+                        Text = t.TextBox.Text
+                    }).ToList()
+                };
+
+                var options = new JsonSerializerOptions { WriteIndented = true };
+                string json = JsonSerializer.Serialize(data, options);
+                System.IO.File.WriteAllText(saveDialog.FileName, json);
+                MessageBox.Show($"Saved to {saveDialog.FileName}", "ScreenAnnotation - 保存完了", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error saving file: {ex.Message}", "ScreenAnnotation - エラー", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
         private void AnnotationForm_MouseDown(object? sender, MouseEventArgs e)
@@ -558,6 +647,11 @@ namespace ScreenAnnotation
 
         private void CreateTextPanel(Point location)
         {
+            CreateTextPanel(location, string.Empty);
+        }
+
+        private void CreateTextPanel(Point location, string initialText)
+        {
             // Create panel with speech bubble background
             var panel = new Panel
             {
@@ -612,7 +706,15 @@ namespace ScreenAnnotation
             // Add click event on form to exit edit mode
             textBox.LostFocus += (s, e) => ExitEditMode(textPanel);
 
-            textBox.Focus();
+            if (!string.IsNullOrEmpty(initialText))
+            {
+                textBox.Text = initialText;
+                ExitEditMode(textPanel);
+            }
+            else
+            {
+                textBox.Focus();
+            }
         }
 
         private void TextBox_MouseDown(TextPanel textPanel, MouseEventArgs e)
@@ -797,5 +899,43 @@ namespace ScreenAnnotation
         {
             ClearAll();
         }
+    }
+
+    // ---- JSON save/load data models ----
+
+    internal class AnnotationSaveData
+    {
+        [JsonPropertyName("generated")]
+        public string Generated { get; set; } = string.Empty;
+
+        [JsonPropertyName("arrows")]
+        public List<ArrowData> Arrows { get; set; } = new();
+
+        [JsonPropertyName("bubbles")]
+        public List<BubbleData> Bubbles { get; set; } = new();
+    }
+
+    internal class ArrowData
+    {
+        [JsonPropertyName("number")]
+        public int Number { get; set; }
+
+        [JsonPropertyName("x")]
+        public int X { get; set; }
+
+        [JsonPropertyName("y")]
+        public int Y { get; set; }
+    }
+
+    internal class BubbleData
+    {
+        [JsonPropertyName("x")]
+        public int X { get; set; }
+
+        [JsonPropertyName("y")]
+        public int Y { get; set; }
+
+        [JsonPropertyName("text")]
+        public string Text { get; set; } = string.Empty;
     }
 }

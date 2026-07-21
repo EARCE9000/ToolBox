@@ -39,6 +39,7 @@
     <EmbeddedResource Include="SaveButton.png" />
     <EmbeddedResource Include="DisplayChange.png" />
     <EmbeddedResource Include="InformationButton.png" Condition="Exists('InformationButton.png')" />
+    <EmbeddedResource Include="LoadButton.png" Condition="Exists('LoadButton.png')" />
   </ItemGroup>
 
   <ItemGroup>
