@@ -7,6 +7,7 @@ namespace ScreenAnnotation
         private List<TextPanel> textPanels = new();
         private List<Rectangle> rectangles = new();
         private List<ImageAnnotation> imageAnnotations = new();
+        private Panel toolbarPanel;
         private Button addTextButton;
         private Button addArrowButton;
         private Button exitButton;
@@ -139,11 +140,21 @@ namespace ScreenAnnotation
             this.TransparencyKey = Color.Magenta;
             this.DoubleBuffered = true;
 
-            // Create exit button (on the first display)
+            // Create toolbar panel with dark gray background
+            toolbarPanel = new Panel
+            {
+                BackColor = Color.FromArgb(50, 50, 50),  // Dark gray
+                Location = new Point(10, 10),
+                Size = new Size(370, 60),
+                Margin = new Padding(0)
+            };
+            this.Controls.Add(toolbarPanel);
+
+            // Create exit button
             exitButton = new Button
             {
                 Size = new Size(50, 50),
-                Location = new Point(10, 10),
+                Location = new Point(5, 5),
                 BackColor = Color.Transparent,
                 FlatStyle = FlatStyle.Flat,
                 Cursor = Cursors.Hand,
@@ -152,13 +163,13 @@ namespace ScreenAnnotation
             };
             exitButton.FlatAppearance.BorderSize = 0;
             exitButton.Click += ExitButton_Click;
-            this.Controls.Add(exitButton);
+            toolbarPanel.Controls.Add(exitButton);
 
             // Create clear button
             clearButton = new Button
             {
                 Size = new Size(50, 50),
-                Location = new Point(70, 10),
+                Location = new Point(65, 5),
                 BackColor = Color.Transparent,
                 FlatStyle = FlatStyle.Flat,
                 Cursor = Cursors.Hand,
@@ -167,13 +178,13 @@ namespace ScreenAnnotation
             };
             clearButton.FlatAppearance.BorderSize = 0;
             clearButton.Click += ClearButton_Click;
-            this.Controls.Add(clearButton);
+            toolbarPanel.Controls.Add(clearButton);
 
             // Create save button
             saveButton = new Button
             {
                 Size = new Size(50, 50),
-                Location = new Point(130, 10),
+                Location = new Point(125, 5),
                 BackColor = Color.Transparent,
                 FlatStyle = FlatStyle.Flat,
                 Cursor = Cursors.Hand,
@@ -182,13 +193,13 @@ namespace ScreenAnnotation
             };
             saveButton.FlatAppearance.BorderSize = 0;
             saveButton.Click += SaveButton_Click;
-            this.Controls.Add(saveButton);
+            toolbarPanel.Controls.Add(saveButton);
 
             // Create add arrow button
             addArrowButton = new Button
             {
                 Size = new Size(50, 50),
-                Location = new Point(190, 10),
+                Location = new Point(185, 5),
                 BackColor = Color.Transparent,
                 ForeColor = Color.White,
                 FlatStyle = FlatStyle.Flat,
@@ -198,13 +209,13 @@ namespace ScreenAnnotation
             };
             addArrowButton.FlatAppearance.BorderSize = 0;
             addArrowButton.Click += AddArrowButton_Click;
-            this.Controls.Add(addArrowButton);
+            toolbarPanel.Controls.Add(addArrowButton);
 
             // Create add text button
             addTextButton = new Button
             {
                 Size = new Size(50, 50),
-                Location = new Point(250, 10),
+                Location = new Point(245, 5),
                 BackColor = Color.Transparent,
                 ForeColor = Color.White,
                 FlatStyle = FlatStyle.Flat,
@@ -214,13 +225,13 @@ namespace ScreenAnnotation
             };
             addTextButton.FlatAppearance.BorderSize = 0;
             addTextButton.Click += AddTextButton_Click;
-            this.Controls.Add(addTextButton);
+            toolbarPanel.Controls.Add(addTextButton);
 
             // Create next display button
             nextDisplayButton = new Button
             {
                 Size = new Size(50, 50),
-                Location = new Point(310, 10),
+                Location = new Point(305, 5),
                 BackColor = Color.Transparent,
                 FlatStyle = FlatStyle.Flat,
                 Cursor = Cursors.Hand,
@@ -229,7 +240,7 @@ namespace ScreenAnnotation
             };
             nextDisplayButton.FlatAppearance.BorderSize = 0;
             nextDisplayButton.Click += NextDisplayButton_Click;
-            this.Controls.Add(nextDisplayButton);
+            toolbarPanel.Controls.Add(nextDisplayButton);
 
             // Mouse events
             this.MouseDown += AnnotationForm_MouseDown;
@@ -245,14 +256,9 @@ namespace ScreenAnnotation
 
         private void AnnotationForm_Resize(object? sender, EventArgs e)
         {
-            // Recalculate button positions based on current form height
-            int buttonBaseY = this.Height - 60;
-            exitButton.Location = new Point(10, buttonBaseY);
-            clearButton.Location = new Point(70, buttonBaseY);
-            saveButton.Location = new Point(130, buttonBaseY);
-            addArrowButton.Location = new Point(190, buttonBaseY);
-            addTextButton.Location = new Point(250, buttonBaseY);
-            nextDisplayButton.Location = new Point(310, buttonBaseY);
+            // Recalculate toolbar panel position based on current form height
+            int toolbarY = this.Height - 70;
+            toolbarPanel.Location = new Point(10, toolbarY);
         }
 
         private void AddArrowButton_Click(object? sender, EventArgs e)
@@ -349,24 +355,7 @@ namespace ScreenAnnotation
 
             if (result == DialogResult.OK)
             {
-                // Clear all annotations
-                textPanels.Clear();
-                imageAnnotations.Clear();
-                rectangles.Clear();
-
-                // Remove all controls except buttons
-                var buttonsToKeep = new[] { exitButton, clearButton, saveButton, addArrowButton, addTextButton };
-                var controlsToRemove = this.Controls.Cast<Control>()
-                    .Where(c => !buttonsToKeep.Contains(c))
-                    .ToList();
-
-                foreach (var control in controlsToRemove)
-                {
-                    this.Controls.Remove(control);
-                    control.Dispose();
-                }
-
-                this.Invalidate();
+                ClearAll();
             }
         }
 
@@ -585,8 +574,8 @@ namespace ScreenAnnotation
         {
             if (e.Button == MouseButtons.Left && textPanel.TextBox.ReadOnly)
             {
-                draggingTextPanel = textPanel;
-                dragOffset = new Point(e.X + 20, e.Y + 20); // Adjust for textbox offset in panel
+                EnterEditMode(textPanel);
+                return;
             }
         }
 
