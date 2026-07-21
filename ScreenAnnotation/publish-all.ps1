@@ -1,17 +1,19 @@
-# ScreenAnnotation Standalone Publish Script
+# ScreenAnnotation All-Platform Publish Script
 
 $ErrorActionPreference = "Continue"
 Set-Location $PSScriptRoot
 
 try {
 	Write-Host "===================================================" -ForegroundColor Cyan
-	Write-Host " ScreenAnnotation Standalone Publish Started..." -ForegroundColor Cyan
+	Write-Host " ScreenAnnotation Publish Started..." -ForegroundColor Cyan
 	Write-Host "===================================================" -ForegroundColor Cyan
 	Write-Host ""
 
 	$profiles = @(
-		@{ Name = "Win-Arm64-Standalone"; Display = "[1/2] Win-Arm64-Standalone" },
-		@{ Name = "Win-x64-Standalone"; Display = "[2/2] Win-x64-Standalone" }
+		@{ Name = "Win-Arm64"; Display = "[1/4] Win-Arm64" },
+		@{ Name = "Win-Arm64-Standalone"; Display = "[2/4] Win-Arm64-Standalone" },
+		@{ Name = "Win-x64"; Display = "[3/4] Win-x64" },
+		@{ Name = "Win-x64-Standalone"; Display = "[4/4] Win-x64-Standalone" }
 	)
 
 	foreach ($profile in $profiles) {
