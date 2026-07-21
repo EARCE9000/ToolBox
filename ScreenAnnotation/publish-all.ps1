@@ -37,6 +37,7 @@ try {
 	# Files to copy
 	$filesToCopy = @(
 		"publish.md",
+		"project.yml",
 		"ArrowIcon.png",
 		"ArrowIconButton.png",
 		"DrawSpeechBubble.png",
