@@ -1,3 +1,5 @@
+using System.Diagnostics;
+using System.Reflection;
 using System.Text;
 
 namespace ScreenAnnotation
@@ -14,6 +16,7 @@ namespace ScreenAnnotation
         private Button clearButton;
         private Button saveButton;
         private Button nextDisplayButton;
+        private Button informationButton;
         private bool isDrawingRect = false;
         private Point rectStartPoint;
         private Rectangle? currentRect = null;
@@ -25,6 +28,7 @@ namespace ScreenAnnotation
         private Image? clearButtonIcon;
         private Image? saveButtonIcon;
         private Image? displayChangeButtonIcon;
+        private Image? informationButtonIcon;
         private ImageAnnotation? draggingImage = null;
         private TextPanel? draggingTextPanel = null;
         private Point dragOffset;
@@ -132,6 +136,14 @@ namespace ScreenAnnotation
                 }
             }
 
+            using (var stream = assembly.GetManifestResourceStream("ScreenAnnotation.InformationButton.png"))
+            {
+                if (stream != null)
+                {
+                    informationButtonIcon = Image.FromStream(stream);
+                }
+            }
+
             // Setup form
             this.FormBorderStyle = FormBorderStyle.None;
             this.WindowState = FormWindowState.Maximized;
@@ -145,7 +157,7 @@ namespace ScreenAnnotation
             {
                 BackColor = Color.FromArgb(50, 50, 50),  // Dark gray
                 Location = new Point(10, 10),
-                Size = new Size(370, 60),
+                Size = new Size(430, 60),
                 Margin = new Padding(0)
             };
             this.Controls.Add(toolbarPanel);
@@ -242,6 +254,23 @@ namespace ScreenAnnotation
             nextDisplayButton.Click += NextDisplayButton_Click;
             toolbarPanel.Controls.Add(nextDisplayButton);
 
+            // Create information button
+            informationButton = new Button
+            {
+                Size = new Size(50, 50),
+                Location = new Point(365, 5),
+                BackColor = Color.Transparent,
+                ForeColor = Color.White,
+                FlatStyle = FlatStyle.Flat,
+                Cursor = Cursors.Hand,
+                Image = informationButtonIcon,
+                ImageAlign = ContentAlignment.MiddleCenter,
+                Text = informationButtonIcon == null ? "i" : string.Empty
+            };
+            informationButton.FlatAppearance.BorderSize = 0;
+            informationButton.Click += InformationButton_Click;
+            toolbarPanel.Controls.Add(informationButton);
+
             // Mouse events
             this.MouseDown += AnnotationForm_MouseDown;
             this.MouseMove += AnnotationForm_MouseMove;
@@ -291,6 +320,22 @@ namespace ScreenAnnotation
         private void NextDisplayButton_Click(object? sender, EventArgs e)
         {
             MoveToNextDisplay();
+        }
+
+        private void InformationButton_Click(object? sender, EventArgs e)
+        {
+            bool wasTopMost = TopMost;
+            TopMost = false;
+
+            try
+            {
+                using var aboutForm = new AboutForm();
+                aboutForm.ShowDialog(this);
+            }
+            finally
+            {
+                TopMost = wasTopMost;
+            }
         }
 
         private void MoveToNextDisplay()

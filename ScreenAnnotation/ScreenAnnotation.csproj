@@ -14,6 +14,7 @@
     <Authors>EARCE9000</Authors>
     <Description>Screen overlay annotation tool for presentations and screen sharing</Description>
     <ApplicationIcon>icons.ico</ApplicationIcon>
+    <BuildTimestamp>$([System.DateTime]::UtcNow.ToString("yyyy-MM-dd HH:mm:ss 'UTC'"))</BuildTimestamp>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -37,6 +38,14 @@
     <EmbeddedResource Include="ClearButton.png" />
     <EmbeddedResource Include="SaveButton.png" />
     <EmbeddedResource Include="DisplayChange.png" />
+    <EmbeddedResource Include="InformationButton.png" Condition="Exists('InformationButton.png')" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>BuildTimestamp</_Parameter1>
+      <_Parameter2>$(BuildTimestamp)</_Parameter2>
+    </AssemblyAttribute>
   </ItemGroup>
 
   <Target Name="UnblockFiles" BeforeTargets="Build">
