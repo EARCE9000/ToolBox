@@ -1,0 +1,26 @@
+name: PresentationPointer
+title: プレゼンテーションポインタ
+description: プレゼン時にマウスで操作できる矢印や吹き出し表示ツール。常に最前面表示対応
+version: 1.0.0
+category: tool
+tags:
+  - presentation
+  - pointer
+  - annotation
+  - screen-overlay
+framework: .NET 10
+supportedOs:
+  - windows
+architectures:
+  - x64
+  - arm64
+features:
+  - arrow-mode
+  - speech-bubble-mode
+  - size-adjustment
+  - rotation
+  - topmost-display
+relatedProjects:
+  - name: ScreenAnnotation
+    description: スクリーン注釈ツール
+publishMdFile: publish.md

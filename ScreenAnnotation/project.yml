@@ -1,0 +1,24 @@
+name: ScreenAnnotation
+title: スクリーン注釈ツール
+description: マルチディスプレイ対応のスクリーン注釈ツール。矢印や吹き出しなどの注釈を画面に重ねて表示
+version: 1.0.0
+category: tool
+tags:
+  - annotation
+  - screen
+  - multimonitor
+  - screenshot
+framework: .NET 10
+supportedOs:
+  - windows
+architectures:
+  - x64
+  - arm64
+features:
+  - arrow-annotation
+  - text-annotation
+  - multi-monitor-support
+relatedProjects:
+  - name: PresentationPointer
+    description: プレゼンテーション用ポインタツール
+publishMdFile: publish.md
