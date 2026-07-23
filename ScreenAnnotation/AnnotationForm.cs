@@ -856,7 +856,7 @@ namespace ScreenAnnotation
             Screen[] screens = Screen.AllScreens;
             if (screens.Length == 0)
             {
-                return Screen.PrimaryScreen.Bounds;
+                return Screen.PrimaryScreen?.Bounds ?? Rectangle.Empty;
             }
 
             int minX = screens[0].Bounds.X;

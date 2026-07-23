@@ -1,0 +1,16 @@
+<Project>
+  <!--
+	wapproj (Windows Application Packaging Project) はビルド時に
+	BaseIntermediateOutputPath を obj\wappublish\{RID}\ に変更する。
+	このとき Microsoft.Common.props が MSBuildProjectExtensionsPath を
+	そのパスに追随させるため、NuGet assets ファイルが見つからなくなる。
+
+	Directory.Build.props は SDK より先に読まれるため、ここで
+	MSBuildProjectExtensionsPath を obj\ に固定することで
+	wapproj の影響を受けず、通常の NuGet restore で生成した
+	obj\project.assets.json を常に参照できるようにする。
+  -->
+  <PropertyGroup>
+	<MSBuildProjectExtensionsPath>$(MSBuildProjectDirectory)\obj\</MSBuildProjectExtensionsPath>
+  </PropertyGroup>
+</Project>

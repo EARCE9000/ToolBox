@@ -1,7 +1,20 @@
 <Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="ARM" />
+    <Platform Name="ARM64" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
   <Folder Name="/ソリューション項目/">
     <File Path="README.md" />
   </Folder>
+  <Project Path="PresentationPointer.Package/PresentationPointer.Package.wapproj" Type="c7167f0d-bc9f-4e6e-afe1-012c56b48db5" Id="47a3392f-5661-4b86-801e-fb8c5ada237d">
+    <Deploy />
+  </Project>
   <Project Path="PresentationPointer/PresentationPointer.csproj" />
+  <Project Path="ScreenAnnotation.Package/ScreenAnnotation.Package.wapproj" Type="c7167f0d-bc9f-4e6e-afe1-012c56b48db5" Id="b9731701-978c-4727-94e3-07668b2332ab">
+    <Deploy />
+  </Project>
   <Project Path="ScreenAnnotation/ScreenAnnotation.csproj" />
 </Solution>

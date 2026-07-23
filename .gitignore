@@ -429,3 +429,11 @@ FodyWeavers.xsd
 *.msp
 /PresentationPointer/publish-all.bat
 /PresentationPointer/publish-all.ps1
+
+# Windows App Packaging Project (WAPP) - Store Association and Manifest files
+*.wapproj.user
+**/Package.appxmanifest
+**/Package.StoreAssociation.xml
+# Exclude packaging project build artifacts
+**/obj/
+**/bin/
