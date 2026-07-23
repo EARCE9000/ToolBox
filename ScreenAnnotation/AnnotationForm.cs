@@ -20,6 +20,7 @@ namespace ScreenAnnotation
         private Button loadButton;
         private Button nextDisplayButton;
         private Button informationButton;
+        private Button sleepButton;
         private ToolTip toolTip = new();
         private bool isDrawingRect = false;
         private Point rectStartPoint;
@@ -34,6 +35,7 @@ namespace ScreenAnnotation
         private Image? loadButtonIcon;
         private Image? displayChangeButtonIcon;
         private Image? informationButtonIcon;
+        private Image? sleepButtonIcon;
         private ImageAnnotation? draggingImage = null;
         private TextPanel? draggingTextPanel = null;
         private Point dragOffset;
@@ -157,6 +159,14 @@ namespace ScreenAnnotation
                 }
             }
 
+            using (var stream = assembly.GetManifestResourceStream("ScreenAnnotation.SleepButton.png"))
+            {
+                if (stream != null)
+                {
+                    sleepButtonIcon = Image.FromStream(stream);
+                }
+            }
+
             // Setup form
             this.FormBorderStyle = FormBorderStyle.None;
             this.WindowState = FormWindowState.Maximized;
@@ -170,7 +180,7 @@ namespace ScreenAnnotation
             {
                 BackColor = Color.FromArgb(50, 50, 50),  // Dark gray
                 Location = new Point(10, 10),
-                Size = new Size(490, 60),
+                Size = new Size(540, 60),
                 Margin = new Padding(0)
             };
             this.Controls.Add(toolbarPanel);
@@ -283,11 +293,26 @@ namespace ScreenAnnotation
             nextDisplayButton.Click += NextDisplayButton_Click;
             toolbarPanel.Controls.Add(nextDisplayButton);
 
+            // Create sleep button (Away/Break status)
+            sleepButton = new Button
+            {
+                Size = new Size(50, 50),
+                Location = new Point(425, 5),
+                BackColor = Color.Transparent,
+                FlatStyle = FlatStyle.Flat,
+                Cursor = Cursors.Hand,
+                Image = sleepButtonIcon,
+                ImageAlign = ContentAlignment.MiddleCenter
+            };
+            sleepButton.FlatAppearance.BorderSize = 0;
+            sleepButton.Click += SleepButton_Click;
+            toolbarPanel.Controls.Add(sleepButton);
+
             // Create information button
             informationButton = new Button
             {
                 Size = new Size(50, 50),
-                Location = new Point(425, 5),
+                Location = new Point(485, 5),
                 BackColor = Color.Transparent,
                 ForeColor = Color.White,
                 FlatStyle = FlatStyle.Flat,
@@ -308,6 +333,7 @@ namespace ScreenAnnotation
             toolTip.SetToolTip(addArrowButton,    "矢印を追加");
             toolTip.SetToolTip(addTextButton,     "吹き出しを追加");
             toolTip.SetToolTip(nextDisplayButton, "ディスプレイを切り替え");
+            toolTip.SetToolTip(sleepButton,       "休憩・離席");
             toolTip.SetToolTip(informationButton, "バージョン情報");
 
             // Mouse events
@@ -426,6 +452,16 @@ namespace ScreenAnnotation
             {
                 TopMost = wasTopMost;
             }
+        }
+
+        private void SleepButton_Click(object? sender, EventArgs e)
+        {
+            // Get the screen that contains this form
+            Screen? currentScreen = Screen.FromControl(this);
+
+            // Show away/break status window on the same screen
+            var statusWindow = new StatusWindow(currentScreen, StatusType.Away);
+            statusWindow.ShowDialog(this);
         }
 
         private void MoveToNextDisplay()
