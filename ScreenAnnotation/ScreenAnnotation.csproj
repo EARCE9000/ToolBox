@@ -43,7 +43,14 @@
     <EmbeddedResource Include="InformationButton.png" Condition="Exists('InformationButton.png')" />
     <EmbeddedResource Include="LoadButton.png" Condition="Exists('LoadButton.png')" />
     <EmbeddedResource Include="SleepButton.png" Condition="Exists('SleepButton.png')" />
+    <EmbeddedResource Include="SettingButton.png" Condition="Exists('SettingButton.png')" />
+    <EmbeddedResource Include="CountUpButton.png" Condition="Exists('CountUpButton.png')" />
+    <EmbeddedResource Include="CountDownButton.png" Condition="Exists('CountDownButton.png')" />
     <EmbeddedResource Include="EscapeButton.png" Condition="Exists('EscapeButton.png')" />
+    <EmbeddedResource Include="Clock_BackGround.png" Condition="Exists('Clock_BackGround.png')" />
+    <EmbeddedResource Include="Clock_Hour.png" Condition="Exists('Clock_Hour.png')" />
+    <EmbeddedResource Include="Clock_Minite.png" Condition="Exists('Clock_Minite.png')" />
+    <EmbeddedResource Include="Clock_Second.png" Condition="Exists('Clock_Second.png')" />
   </ItemGroup>
 
   <ItemGroup>
@@ -53,8 +60,23 @@
     </AssemblyAttribute>
   </ItemGroup>
 
-  <Target Name="UnblockFiles" BeforeTargets="Build">
-    <Exec Command="powershell -Command &quot;Get-ChildItem -Path '$(OutDir)' -Recurse | Unblock-File -ErrorAction SilentlyContinue&quot;" />
+  <ItemGroup>
+    <Compile Update="Properties\Settings.Designer.cs">
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+
+  <Target Name="UnblockFiles" AfterTargets="Build">
+    <Exec Command="powershell -Command &quot;if (Test-Path '$(TargetDir)') { Get-ChildItem -Path '$(TargetDir)' -Recurse -File | Unblock-File -ErrorAction SilentlyContinue }&quot;" />
   </Target>
 
 </Project>

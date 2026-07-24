@@ -21,6 +21,7 @@ namespace ScreenAnnotation
         private Button nextDisplayButton;
         private Button informationButton;
         private Button sleepButton;
+        private Button settingButton;
         private ToolTip toolTip = new();
         private bool isDrawingRect = false;
         private Point rectStartPoint;
@@ -36,6 +37,7 @@ namespace ScreenAnnotation
         private Image? displayChangeButtonIcon;
         private Image? informationButtonIcon;
         private Image? sleepButtonIcon;
+        private Image? settingButtonIcon;
         private ImageAnnotation? draggingImage = null;
         private TextPanel? draggingTextPanel = null;
         private Point dragOffset;
@@ -167,6 +169,14 @@ namespace ScreenAnnotation
                 }
             }
 
+            using (var stream = assembly.GetManifestResourceStream("ScreenAnnotation.SettingButton.png"))
+            {
+                if (stream != null)
+                {
+                    settingButtonIcon = Image.FromStream(stream);
+                }
+            }
+
             // Setup form
             this.FormBorderStyle = FormBorderStyle.None;
             this.WindowState = FormWindowState.Maximized;
@@ -180,7 +190,7 @@ namespace ScreenAnnotation
             {
                 BackColor = Color.FromArgb(50, 50, 50),  // Dark gray
                 Location = new Point(10, 10),
-                Size = new Size(540, 60),
+                Size = new Size(600, 60),
                 Margin = new Padding(0)
             };
             this.Controls.Add(toolbarPanel);
@@ -308,11 +318,27 @@ namespace ScreenAnnotation
             sleepButton.Click += SleepButton_Click;
             toolbarPanel.Controls.Add(sleepButton);
 
+            // Create setting button
+            settingButton = new Button
+            {
+                Size = new Size(50, 50),
+                Location = new Point(485, 5),
+                BackColor = Color.Transparent,
+                FlatStyle = FlatStyle.Flat,
+                Cursor = Cursors.Hand,
+                Image = settingButtonIcon,
+                ImageAlign = ContentAlignment.MiddleCenter,
+                Text = settingButtonIcon == null ? "S" : string.Empty
+            };
+            settingButton.FlatAppearance.BorderSize = 0;
+            settingButton.Click += SettingButton_Click;
+            toolbarPanel.Controls.Add(settingButton);
+
             // Create information button
             informationButton = new Button
             {
                 Size = new Size(50, 50),
-                Location = new Point(485, 5),
+                Location = new Point(545, 5),
                 BackColor = Color.Transparent,
                 ForeColor = Color.White,
                 FlatStyle = FlatStyle.Flat,
@@ -334,6 +360,7 @@ namespace ScreenAnnotation
             toolTip.SetToolTip(addTextButton,     "吹き出しを追加");
             toolTip.SetToolTip(nextDisplayButton, "ディスプレイを切り替え");
             toolTip.SetToolTip(sleepButton,       "休憩・離席");
+            toolTip.SetToolTip(settingButton,     "スリープ表示テキスト設定");
             toolTip.SetToolTip(informationButton, "バージョン情報");
 
             // Mouse events
@@ -462,6 +489,68 @@ namespace ScreenAnnotation
             // Show away/break status window on the same screen
             var statusWindow = new StatusWindow(currentScreen, StatusType.Away);
             statusWindow.ShowDialog(this);
+        }
+
+        private void SettingButton_Click(object? sender, EventArgs e)
+        {
+            bool wasTopMost = TopMost;
+            TopMost = false;
+
+            try
+            {
+                ShowSleepTextSettingsDialog();
+            }
+            finally
+            {
+                TopMost = wasTopMost;
+            }
+        }
+
+        private void ShowSleepTextSettingsDialog()
+        {
+            using var form = new Form
+            {
+                Text = "スリープ表示テキスト設定",
+                Width = 460,
+                Height = 250,
+                StartPosition = FormStartPosition.CenterParent,
+                FormBorderStyle = FormBorderStyle.FixedDialog,
+                MaximizeBox = false,
+                MinimizeBox = false
+            };
+
+            var titleLabel = new Label { Text = "スリープ画面表示文", Left = 16, Top = 16, Width = 180 };
+            var lbl1 = new Label { Text = "１）", Left = 16, Top = 50, Width = 40 };
+            var txt1 = new TextBox { Left = 64, Top = 46, Width = 366, Text = Properties.Settings.Default.SleepWord1 };
+            var lbl2 = new Label { Text = "２）", Left = 16, Top = 90, Width = 40 };
+            var txt2 = new TextBox { Left = 64, Top = 86, Width = 366, Text = Properties.Settings.Default.SleepWord2 };
+            var lbl3 = new Label { Text = "３）", Left = 16, Top = 130, Width = 40 };
+            var txt3 = new TextBox { Left = 64, Top = 126, Width = 366, Text = Properties.Settings.Default.SleepWord3 };
+
+            var okButton = new Button { Text = "保存", Left = 270, Top = 170, Width = 75, DialogResult = DialogResult.OK };
+            var cancelButton = new Button { Text = "キャンセル", Left = 355, Top = 170, Width = 75, DialogResult = DialogResult.Cancel };
+
+            form.Controls.Add(titleLabel);
+            form.Controls.Add(lbl1);
+            form.Controls.Add(txt1);
+            form.Controls.Add(lbl2);
+            form.Controls.Add(txt2);
+            form.Controls.Add(lbl3);
+            form.Controls.Add(txt3);
+            form.Controls.Add(okButton);
+            form.Controls.Add(cancelButton);
+            form.AcceptButton = okButton;
+            form.CancelButton = cancelButton;
+
+            if (form.ShowDialog(this) != DialogResult.OK)
+            {
+                return;
+            }
+
+            Properties.Settings.Default.SleepWord1 = txt1.Text.Trim();
+            Properties.Settings.Default.SleepWord2 = txt2.Text.Trim();
+            Properties.Settings.Default.SleepWord3 = txt3.Text.Trim();
+            Properties.Settings.Default.Save();
         }
 
         private void MoveToNextDisplay()

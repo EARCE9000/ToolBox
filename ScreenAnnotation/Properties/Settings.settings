@@ -1,0 +1,15 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="ScreenAnnotation.Properties" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="SleepWord1" Type="System.String" Scope="User">
+      <Value Profile="(Default)">只今、離席中</Value>
+    </Setting>
+    <Setting Name="SleepWord2" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Break Time</Value>
+    </Setting>
+    <Setting Name="SleepWord3" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Lunch Break</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>
