@@ -196,6 +196,16 @@ namespace ScreenAnnotation
             return string.IsNullOrWhiteSpace(value) ? fallback : value;
         }
 
+        private bool ShouldShowResumeTime()
+        {
+            return statusType switch
+            {
+                StatusType.BreakTime => Properties.Settings.Default.ShowResumeTime2,
+                StatusType.LunchBreak => Properties.Settings.Default.ShowResumeTime3,
+                _ => Properties.Settings.Default.ShowResumeTime1
+            };
+        }
+
         private void CycleStatusType()
         {
             statusType = statusType switch
@@ -259,43 +269,52 @@ namespace ScreenAnnotation
                 e.Graphics.DrawString(DateTime.Now.ToString("HH:mm"), font, brush, currentTimeLeft, currentTimeTop);
             }
 
-            // Draw resume time label (再開時刻) at X:25%, Y:68%
-            int resumeTimeLabelLeft = (int)(this.ClientSize.Width * 0.25);
-            int resumeTimeLabelTop = (int)(this.ClientSize.Height * 0.68);
-            using (var font = new Font("Segoe UI", labelFontSize, FontStyle.Regular))
-            using (var brush = new SolidBrush(Color.FromArgb(200, 100, 50)))
+            if (ShouldShowResumeTime())
             {
-                e.Graphics.DrawString("再開時刻", font, brush, resumeTimeLabelLeft, resumeTimeLabelTop);
-            }
+                // Draw resume time label (再開時刻) at X:25%, Y:68%
+                int resumeTimeLabelLeft = (int)(this.ClientSize.Width * 0.25);
+                int resumeTimeLabelTop = (int)(this.ClientSize.Height * 0.68);
+                using (var font = new Font("Segoe UI", labelFontSize, FontStyle.Regular))
+                using (var brush = new SolidBrush(Color.FromArgb(200, 100, 50)))
+                {
+                    e.Graphics.DrawString("再開時刻", font, brush, resumeTimeLabelLeft, resumeTimeLabelTop);
+                }
 
-            // Draw resume time value (HH:mm) at X:25%, Y:72%
-            int resumeTimeLeft = (int)(this.ClientSize.Width * 0.25);
-            int resumeTimeTop = (int)(this.ClientSize.Height * 0.72);
-            string resumeText = resumeTime.ToString("HH:mm");
-            SizeF resumeTextSize;
-            using (var font = new Font("Segoe UI", timeFontSize, FontStyle.Bold))
-            using (var brush = new SolidBrush(Color.FromArgb(200, 100, 50)))
+                // Draw resume time value (HH:mm) at X:25%, Y:72%
+                int resumeTimeLeft = (int)(this.ClientSize.Width * 0.25);
+                int resumeTimeTop = (int)(this.ClientSize.Height * 0.72);
+                string resumeText = resumeTime.ToString("HH:mm");
+                SizeF resumeTextSize;
+                using (var font = new Font("Segoe UI", timeFontSize, FontStyle.Bold))
+                using (var brush = new SolidBrush(Color.FromArgb(200, 100, 50)))
+                {
+                    e.Graphics.DrawString(resumeText, font, brush, resumeTimeLeft, resumeTimeTop);
+                    resumeTextSize = e.Graphics.MeasureString(resumeText, font);
+                }
+
+                int resumeTextWidth = (int)Math.Ceiling(resumeTextSize.Width);
+                int resumeTextHeight = (int)Math.Ceiling(resumeTextSize.Height);
+                resumeTimeBounds = new Rectangle(resumeTimeLeft, resumeTimeTop, resumeTextWidth, resumeTextHeight);
+
+                int spinnerGap = 6;
+                int spinnerLeft = resumeTimeBounds.Right + spinnerGap;
+                int spinnerTotalHeight = Math.Max(23, (resumeTextHeight - 12) / 2);
+                int spinnerTop = resumeTimeTop + Math.Max(0, (resumeTextHeight - spinnerTotalHeight) / 2);
+                int spinnerWidth = Math.Max(13, (int)(spinnerTotalHeight * 0.8f));
+                int upperHeight = spinnerTotalHeight / 2;
+                int lowerHeight = spinnerTotalHeight - upperHeight;
+
+                resumeTimeUpButtonBounds = new Rectangle(spinnerLeft, spinnerTop, spinnerWidth, upperHeight);
+                resumeTimeDownButtonBounds = new Rectangle(spinnerLeft, spinnerTop + upperHeight, spinnerWidth, lowerHeight);
+
+                DrawResumeAdjustSpinner(e.Graphics);
+            }
+            else
             {
-                e.Graphics.DrawString(resumeText, font, brush, resumeTimeLeft, resumeTimeTop);
-                resumeTextSize = e.Graphics.MeasureString(resumeText, font);
+                resumeTimeBounds = Rectangle.Empty;
+                resumeTimeUpButtonBounds = Rectangle.Empty;
+                resumeTimeDownButtonBounds = Rectangle.Empty;
             }
-
-            int resumeTextWidth = (int)Math.Ceiling(resumeTextSize.Width);
-            int resumeTextHeight = (int)Math.Ceiling(resumeTextSize.Height);
-            resumeTimeBounds = new Rectangle(resumeTimeLeft, resumeTimeTop, resumeTextWidth, resumeTextHeight);
-
-            int spinnerGap = 6;
-            int spinnerLeft = resumeTimeBounds.Right + spinnerGap;
-            int spinnerTotalHeight = Math.Max(23, (resumeTextHeight - 12) / 2);
-            int spinnerTop = resumeTimeTop + Math.Max(0, (resumeTextHeight - spinnerTotalHeight) / 2);
-            int spinnerWidth = Math.Max(13, (int)(spinnerTotalHeight * 0.8f));
-            int upperHeight = spinnerTotalHeight / 2;
-            int lowerHeight = spinnerTotalHeight - upperHeight;
-
-            resumeTimeUpButtonBounds = new Rectangle(spinnerLeft, spinnerTop, spinnerWidth, upperHeight);
-            resumeTimeDownButtonBounds = new Rectangle(spinnerLeft, spinnerTop + upperHeight, spinnerWidth, lowerHeight);
-
-            DrawResumeAdjustSpinner(e.Graphics);
 
             // Draw close button (top right)
             int buttonSize = 50;
@@ -408,16 +427,20 @@ namespace ScreenAnnotation
         private void DrawResumeAdjustSpinner(Graphics g)
         {
             Rectangle spinnerBounds = Rectangle.Union(resumeTimeUpButtonBounds, resumeTimeDownButtonBounds);
+            bool useImageButtons = countUpButtonIcon != null && countDownButtonIcon != null;
 
-            using (var buttonBrush = new SolidBrush(Color.FromArgb(245, 245, 245)))
+            if (!useImageButtons)
             {
-                g.FillRectangle(buttonBrush, spinnerBounds);
-            }
+                using (var buttonBrush = new SolidBrush(Color.FromArgb(245, 245, 245)))
+                {
+                    g.FillRectangle(buttonBrush, spinnerBounds);
+                }
 
-            using (var borderPen = new Pen(Color.FromArgb(150, 150, 150), 1))
-            {
-                g.DrawRectangle(borderPen, spinnerBounds);
-                g.DrawLine(borderPen, spinnerBounds.Left, resumeTimeDownButtonBounds.Top, spinnerBounds.Right - 1, resumeTimeDownButtonBounds.Top);
+                using (var borderPen = new Pen(Color.FromArgb(150, 150, 150), 1))
+                {
+                    g.DrawRectangle(borderPen, spinnerBounds);
+                    g.DrawLine(borderPen, spinnerBounds.Left, resumeTimeDownButtonBounds.Top, spinnerBounds.Right - 1, resumeTimeDownButtonBounds.Top);
+                }
             }
 
             DrawResumeAdjustGlyph(g, resumeTimeUpButtonBounds, countUpButtonIcon, true);
@@ -426,7 +449,11 @@ namespace ScreenAnnotation
 
         private void DrawResumeAdjustGlyph(Graphics g, Rectangle bounds, Image? image, bool isUp)
         {
-            _ = image;
+            if (image != null)
+            {
+                g.DrawImage(image, bounds);
+                return;
+            }
 
             int centerX = bounds.Left + bounds.Width / 2;
             int centerY = bounds.Top + bounds.Height / 2;
@@ -488,6 +515,11 @@ namespace ScreenAnnotation
         private void StatusWindow_MouseDown(object? sender, MouseEventArgs e)
         {
             if (e.Button != MouseButtons.Left)
+            {
+                return;
+            }
+
+            if (!ShouldShowResumeTime())
             {
                 return;
             }
@@ -561,7 +593,7 @@ namespace ScreenAnnotation
             }
 
             // Check if clicked on resume time - allow editing
-            if (resumeTimeBounds.Contains(e.Location))
+            if (ShouldShowResumeTime() && resumeTimeBounds.Contains(e.Location))
             {
                 ShowResumeTimeDialog();
                 return;

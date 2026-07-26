@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Reflection;
 using System.Text;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -41,6 +42,7 @@ namespace ScreenAnnotation
         private ImageAnnotation? draggingImage = null;
         private TextPanel? draggingTextPanel = null;
         private Point dragOffset;
+        private string lastSavedAnnotationSnapshot = string.Empty;
 
         private class TextPanel
         {
@@ -373,6 +375,7 @@ namespace ScreenAnnotation
             this.Resize += AnnotationForm_Resize;
 
             this.Cursor = Cursors.Default;
+            lastSavedAnnotationSnapshot = CreateCurrentAnnotationSnapshot();
         }
 
         private void AnnotationForm_Resize(object? sender, EventArgs e)
@@ -453,6 +456,7 @@ namespace ScreenAnnotation
                 }
 
                 Invalidate();
+                lastSavedAnnotationSnapshot = CreateCurrentAnnotationSnapshot();
             }
             catch (Exception ex)
             {
@@ -510,9 +514,9 @@ namespace ScreenAnnotation
         {
             using var form = new Form
             {
-                Text = "スリープ表示テキスト設定",
-                Width = 460,
-                Height = 250,
+                Text = "設定",
+                Width = 640,
+                Height = 270,
                 StartPosition = FormStartPosition.CenterParent,
                 FormBorderStyle = FormBorderStyle.FixedDialog,
                 MaximizeBox = false,
@@ -521,22 +525,28 @@ namespace ScreenAnnotation
 
             var titleLabel = new Label { Text = "スリープ画面表示文", Left = 16, Top = 16, Width = 180 };
             var lbl1 = new Label { Text = "１）", Left = 16, Top = 50, Width = 40 };
-            var txt1 = new TextBox { Left = 64, Top = 46, Width = 366, Text = Properties.Settings.Default.SleepWord1 };
+            var txt1 = new TextBox { Left = 64, Top = 46, Width = 330, MaxLength = 10, Text = Properties.Settings.Default.SleepWord1 };
+            var toggle1 = new CheckBox { Left = 410, Top = 48, Width = 200, Text = "再開時刻を表示", Checked = Properties.Settings.Default.ShowResumeTime1 };
             var lbl2 = new Label { Text = "２）", Left = 16, Top = 90, Width = 40 };
-            var txt2 = new TextBox { Left = 64, Top = 86, Width = 366, Text = Properties.Settings.Default.SleepWord2 };
+            var txt2 = new TextBox { Left = 64, Top = 86, Width = 330, MaxLength = 10, Text = Properties.Settings.Default.SleepWord2 };
+            var toggle2 = new CheckBox { Left = 410, Top = 88, Width = 200, Text = "再開時刻を表示", Checked = Properties.Settings.Default.ShowResumeTime2 };
             var lbl3 = new Label { Text = "３）", Left = 16, Top = 130, Width = 40 };
-            var txt3 = new TextBox { Left = 64, Top = 126, Width = 366, Text = Properties.Settings.Default.SleepWord3 };
+            var txt3 = new TextBox { Left = 64, Top = 126, Width = 330, MaxLength = 10, Text = Properties.Settings.Default.SleepWord3 };
+            var toggle3 = new CheckBox { Left = 410, Top = 128, Width = 200, Text = "再開時刻を表示", Checked = Properties.Settings.Default.ShowResumeTime3 };
 
-            var okButton = new Button { Text = "保存", Left = 270, Top = 170, Width = 75, DialogResult = DialogResult.OK };
-            var cancelButton = new Button { Text = "キャンセル", Left = 355, Top = 170, Width = 75, DialogResult = DialogResult.Cancel };
+            var okButton = new Button { Text = "保存", Left = 450, Top = 170, Width = 75, Height = 32, DialogResult = DialogResult.OK };
+            var cancelButton = new Button { Text = "キャンセル", Left = 535, Top = 170, Width = 75, Height = 32, DialogResult = DialogResult.Cancel };
 
             form.Controls.Add(titleLabel);
             form.Controls.Add(lbl1);
             form.Controls.Add(txt1);
+            form.Controls.Add(toggle1);
             form.Controls.Add(lbl2);
             form.Controls.Add(txt2);
+            form.Controls.Add(toggle2);
             form.Controls.Add(lbl3);
             form.Controls.Add(txt3);
+            form.Controls.Add(toggle3);
             form.Controls.Add(okButton);
             form.Controls.Add(cancelButton);
             form.AcceptButton = okButton;
@@ -550,6 +560,9 @@ namespace ScreenAnnotation
             Properties.Settings.Default.SleepWord1 = txt1.Text.Trim();
             Properties.Settings.Default.SleepWord2 = txt2.Text.Trim();
             Properties.Settings.Default.SleepWord3 = txt3.Text.Trim();
+            Properties.Settings.Default.ShowResumeTime1 = toggle1.Checked;
+            Properties.Settings.Default.ShowResumeTime2 = toggle2.Checked;
+            Properties.Settings.Default.ShowResumeTime3 = toggle3.Checked;
             Properties.Settings.Default.Save();
         }
 
@@ -606,6 +619,18 @@ namespace ScreenAnnotation
 
         private void ClearButton_Click(object? sender, EventArgs e)
         {
+            if (textPanels.Count == 0 && imageAnnotations.Count == 0)
+            {
+                ClearAll();
+                return;
+            }
+
+            if (IsCurrentAnnotationSaved())
+            {
+                ClearAll();
+                return;
+            }
+
             var result = MessageBox.Show(
                 "全ての注釈をクリアしてもよろしいですか？",
                 "ScreenAnnotation - クリア確認",
@@ -643,26 +668,16 @@ namespace ScreenAnnotation
 
             try
             {
-                var data = new AnnotationSaveData
-                {
-                    Generated = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
-                    Arrows = imageAnnotations.Select(a => new ArrowData
-                    {
-                        Number = a.Number,
-                        X = a.Location.X,
-                        Y = a.Location.Y
-                    }).ToList(),
-                    Bubbles = textPanels.Select(t => new BubbleData
-                    {
-                        X = t.Panel.Location.X,
-                        Y = t.Panel.Location.Y,
-                        Text = t.TextBox.Text
-                    }).ToList()
-                };
+                var data = CreateCurrentSaveData();
 
-                var options = new JsonSerializerOptions { WriteIndented = true };
+                var options = new JsonSerializerOptions
+                {
+                    WriteIndented = true,
+                    Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+                };
                 string json = JsonSerializer.Serialize(data, options);
                 System.IO.File.WriteAllText(saveDialog.FileName, json);
+                lastSavedAnnotationSnapshot = CreateCurrentAnnotationSnapshot();
                 MessageBox.Show($"Saved to {saveDialog.FileName}", "ScreenAnnotation - 保存完了", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
@@ -670,6 +685,38 @@ namespace ScreenAnnotation
                 MessageBox.Show($"Error saving file: {ex.Message}", "ScreenAnnotation - エラー", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
+
+        private AnnotationSaveData CreateCurrentSaveData()
+        {
+            return new AnnotationSaveData
+            {
+                Generated = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
+                Arrows = imageAnnotations.Select(a => new ArrowData
+                {
+                    Number = a.Number,
+                    X = a.Location.X,
+                    Y = a.Location.Y
+                }).ToList(),
+                Bubbles = textPanels.Select(t => new BubbleData
+                {
+                    X = t.Panel.Location.X,
+                    Y = t.Panel.Location.Y,
+                    Text = t.TextBox.Text
+                }).ToList()
+            };
+        }
+
+        private string CreateCurrentAnnotationSnapshot()
+        {
+            var snapshot = CreateCurrentSaveData();
+            return JsonSerializer.Serialize(new { snapshot.Arrows, snapshot.Bubbles });
+        }
+
+        private bool IsCurrentAnnotationSaved()
+        {
+            return string.Equals(lastSavedAnnotationSnapshot, CreateCurrentAnnotationSnapshot(), StringComparison.Ordinal);
+        }
+
         private void AnnotationForm_MouseDown(object? sender, MouseEventArgs e)
         {
             if (e.Button == MouseButtons.Left)

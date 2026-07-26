@@ -11,5 +11,14 @@
     <Setting Name="SleepWord3" Type="System.String" Scope="User">
       <Value Profile="(Default)">Lunch Break</Value>
     </Setting>
+    <Setting Name="ShowResumeTime1" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="ShowResumeTime2" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="ShowResumeTime3" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

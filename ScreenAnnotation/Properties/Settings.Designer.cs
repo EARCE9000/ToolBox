@@ -58,5 +58,41 @@ namespace ScreenAnnotation.Properties {
                 this["SleepWord3"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool ShowResumeTime1 {
+            get {
+                return ((bool)(this["ShowResumeTime1"]));
+            }
+            set {
+                this["ShowResumeTime1"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool ShowResumeTime2 {
+            get {
+                return ((bool)(this["ShowResumeTime2"]));
+            }
+            set {
+                this["ShowResumeTime2"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool ShowResumeTime3 {
+            get {
+                return ((bool)(this["ShowResumeTime3"]));
+            }
+            set {
+                this["ShowResumeTime3"] = value;
+            }
+        }
     }
 }
