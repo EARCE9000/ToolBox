@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
@@ -23,6 +24,7 @@ namespace ScreenAnnotation
         private Button informationButton;
         private Button sleepButton;
         private Button settingButton;
+        private Button captureButton;
         private ToolTip toolTip = new();
         private bool isDrawingRect = false;
         private Point rectStartPoint;
@@ -39,10 +41,53 @@ namespace ScreenAnnotation
         private Image? informationButtonIcon;
         private Image? sleepButtonIcon;
         private Image? settingButtonIcon;
+        private Image? captureButtonIcon;
         private ImageAnnotation? draggingImage = null;
         private TextPanel? draggingTextPanel = null;
         private Point dragOffset;
         private string lastSavedAnnotationSnapshot = string.Empty;
+
+        private const int ENUM_CURRENT_SETTINGS = -1;
+
+        [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+        private static extern bool EnumDisplaySettings(string deviceName, int modeNum, ref DEVMODE devMode);
+
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+        private struct DEVMODE
+        {
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)]
+            public string dmDeviceName;
+            public short dmSpecVersion;
+            public short dmDriverVersion;
+            public short dmSize;
+            public short dmDriverExtra;
+            public int dmFields;
+            public int dmPositionX;
+            public int dmPositionY;
+            public int dmDisplayOrientation;
+            public int dmDisplayFixedOutput;
+            public short dmColor;
+            public short dmDuplex;
+            public short dmYResolution;
+            public short dmTTOption;
+            public short dmCollate;
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)]
+            public string dmFormName;
+            public short dmLogPixels;
+            public int dmBitsPerPel;
+            public int dmPelsWidth;
+            public int dmPelsHeight;
+            public int dmDisplayFlags;
+            public int dmDisplayFrequency;
+            public int dmICMMethod;
+            public int dmICMIntent;
+            public int dmMediaType;
+            public int dmDitherType;
+            public int dmReserved1;
+            public int dmReserved2;
+            public int dmPanningWidth;
+            public int dmPanningHeight;
+        }
 
         private class TextPanel
         {
@@ -179,6 +224,14 @@ namespace ScreenAnnotation
                 }
             }
 
+            using (var stream = assembly.GetManifestResourceStream("ScreenAnnotation.CaptureButton.png"))
+            {
+                if (stream != null)
+                {
+                    captureButtonIcon = Image.FromStream(stream);
+                }
+            }
+
             // Setup form
             this.FormBorderStyle = FormBorderStyle.None;
             this.WindowState = FormWindowState.Maximized;
@@ -192,7 +245,7 @@ namespace ScreenAnnotation
             {
                 BackColor = Color.FromArgb(50, 50, 50),  // Dark gray
                 Location = new Point(10, 10),
-                Size = new Size(600, 60),
+                Size = new Size(660, 60),
                 Margin = new Padding(0)
             };
             this.Controls.Add(toolbarPanel);
@@ -258,11 +311,28 @@ namespace ScreenAnnotation
             loadButton.Click += LoadButton_Click;
             toolbarPanel.Controls.Add(loadButton);
 
+            // Create capture button
+            captureButton = new Button
+            {
+                Size = new Size(50, 50),
+                Location = new Point(245, 5),
+                BackColor = Color.Transparent,
+                ForeColor = Color.White,
+                FlatStyle = FlatStyle.Flat,
+                Cursor = Cursors.Hand,
+                Image = captureButtonIcon,
+                ImageAlign = ContentAlignment.MiddleCenter,
+                Text = captureButtonIcon == null ? "C" : string.Empty
+            };
+            captureButton.FlatAppearance.BorderSize = 0;
+            captureButton.Click += CaptureButton_Click;
+            toolbarPanel.Controls.Add(captureButton);
+
             // Create add arrow button
             addArrowButton = new Button
             {
                 Size = new Size(50, 50),
-                Location = new Point(245, 5),
+                Location = new Point(305, 5),
                 BackColor = Color.Transparent,
                 ForeColor = Color.White,
                 FlatStyle = FlatStyle.Flat,
@@ -278,7 +348,7 @@ namespace ScreenAnnotation
             addTextButton = new Button
             {
                 Size = new Size(50, 50),
-                Location = new Point(305, 5),
+                Location = new Point(365, 5),
                 BackColor = Color.Transparent,
                 ForeColor = Color.White,
                 FlatStyle = FlatStyle.Flat,
@@ -294,7 +364,7 @@ namespace ScreenAnnotation
             nextDisplayButton = new Button
             {
                 Size = new Size(50, 50),
-                Location = new Point(365, 5),
+                Location = new Point(425, 5),
                 BackColor = Color.Transparent,
                 FlatStyle = FlatStyle.Flat,
                 Cursor = Cursors.Hand,
@@ -309,7 +379,7 @@ namespace ScreenAnnotation
             sleepButton = new Button
             {
                 Size = new Size(50, 50),
-                Location = new Point(425, 5),
+                Location = new Point(485, 5),
                 BackColor = Color.Transparent,
                 FlatStyle = FlatStyle.Flat,
                 Cursor = Cursors.Hand,
@@ -324,7 +394,7 @@ namespace ScreenAnnotation
             settingButton = new Button
             {
                 Size = new Size(50, 50),
-                Location = new Point(485, 5),
+                Location = new Point(545, 5),
                 BackColor = Color.Transparent,
                 FlatStyle = FlatStyle.Flat,
                 Cursor = Cursors.Hand,
@@ -340,7 +410,7 @@ namespace ScreenAnnotation
             informationButton = new Button
             {
                 Size = new Size(50, 50),
-                Location = new Point(545, 5),
+                Location = new Point(605, 5),
                 BackColor = Color.Transparent,
                 ForeColor = Color.White,
                 FlatStyle = FlatStyle.Flat,
@@ -364,6 +434,7 @@ namespace ScreenAnnotation
             toolTip.SetToolTip(sleepButton,       "休憩・離席");
             toolTip.SetToolTip(settingButton,     "スリープ表示テキスト設定");
             toolTip.SetToolTip(informationButton, "バージョン情報");
+            toolTip.SetToolTip(captureButton,     "画面キャプチャ（PNG保存）");
 
             // Mouse events
             this.MouseDown += AnnotationForm_MouseDown;
@@ -415,6 +486,64 @@ namespace ScreenAnnotation
         private void LoadButton_Click(object? sender, EventArgs e)
         {
             LoadFromJson();
+        }
+
+        private void CaptureButton_Click(object? sender, EventArgs e)
+        {
+            try
+            {
+                Rectangle formBounds = this.Bounds;
+                Screen targetScreen = Screen.FromControl(this);
+                int maxOverlapArea = -1;
+
+                foreach (var screen in Screen.AllScreens)
+                {
+                    Rectangle overlap = Rectangle.Intersect(screen.Bounds, formBounds);
+                    int overlapArea = Math.Max(0, overlap.Width) * Math.Max(0, overlap.Height);
+                    if (overlapArea > maxOverlapArea)
+                    {
+                        maxOverlapArea = overlapArea;
+                        targetScreen = screen;
+                    }
+                }
+
+                Rectangle captureBounds = TryGetDisplayBoundsInPixels(targetScreen, out Rectangle pixelBounds)
+                    ? pixelBounds
+                    : targetScreen.Bounds;
+
+                using var bitmap = new Bitmap(captureBounds.Width, captureBounds.Height);
+                using (var graphics = Graphics.FromImage(bitmap))
+                {
+                    graphics.CopyFromScreen(captureBounds.Left, captureBounds.Top, 0, 0, captureBounds.Size, CopyPixelOperation.SourceCopy);
+                }
+
+                string screenshotsDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), "Screenshots");
+                Directory.CreateDirectory(screenshotsDirectory);
+
+                string filePath = Path.Combine(screenshotsDirectory, $"ScreenAnnotation_{DateTime.Now:yyyyMMdd_HHmmss}.png");
+                bitmap.Save(filePath, System.Drawing.Imaging.ImageFormat.Png);
+
+                MessageBox.Show($"Saved to {filePath}", "ScreenAnnotation - キャプチャ保存完了", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error capturing screen: {ex.Message}", "ScreenAnnotation - エラー", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private static bool TryGetDisplayBoundsInPixels(Screen screen, out Rectangle bounds)
+        {
+            DEVMODE mode = new DEVMODE();
+            mode.dmSize = (short)Marshal.SizeOf(typeof(DEVMODE));
+
+            if (EnumDisplaySettings(screen.DeviceName, ENUM_CURRENT_SETTINGS, ref mode))
+            {
+                bounds = new Rectangle(mode.dmPositionX, mode.dmPositionY, mode.dmPelsWidth, mode.dmPelsHeight);
+                return true;
+            }
+
+            bounds = Rectangle.Empty;
+            return false;
         }
 
         private void LoadFromJson()
