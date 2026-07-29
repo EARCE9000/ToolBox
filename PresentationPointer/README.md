@@ -1,4 +1,4 @@
-title: PresentationPointer
+PresentationPointer
 ---
 ## 概要
 
