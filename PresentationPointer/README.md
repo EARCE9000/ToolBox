@@ -4,6 +4,10 @@ title: PresentationPointer
 
 Windowsでのプレゼン時に、矢印や吹き出しを表示してマウスで操作できるポインタツール。
 
+Microsoft Store で公開中です。以下のページからインストールできます。
+
+- https://apps.microsoft.com/detail/9NVS9CJKCQ8K
+
 ## 主な機能
 
 ### 矢印モード

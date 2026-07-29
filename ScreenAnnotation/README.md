@@ -3,6 +3,10 @@
 
 Windows での画面注釈ツール。マルチディスプレイ環境でスクリーンショット撮影時に、矢印や吹き出しなどの注釈を重ねて表示できます。
 
+Microsoft Store で公開中です。以下のページからインストールできます。
+
+- https://apps.microsoft.com/detail/9PHTV9DGZRR2
+
 ## 主な機能
 
 ### 矢印注釈

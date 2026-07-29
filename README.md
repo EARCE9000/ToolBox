@@ -8,6 +8,10 @@
 
 Windows でのプレゼン時に、矢印や吹き出しを表示してマウスで操作できるポインタツール。
 
+Microsoft Store で公開中です。以下のページからインストールできます。
+
+- https://apps.microsoft.com/detail/9NVS9CJKCQ8K
+
 #### 主な機能
 
 **矢印モード**
@@ -32,6 +36,10 @@ Windows でのプレゼン時に、矢印や吹き出しを表示してマウス
 ### ScreenAnnotation
 
 画面キャプチャ時に注釈を重ねるツール。複数ディスプレイ環境にも対応。
+
+Microsoft Store で公開中です。以下のページからインストールできます。
+
+- https://apps.microsoft.com/detail/9PHTV9DGZRR2
 
 #### 主な機能
 
