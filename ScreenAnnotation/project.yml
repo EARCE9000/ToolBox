@@ -21,4 +21,5 @@ features:
 relatedProjects:
   - name: PresentationPointer
     description: プレゼンテーション用ポインタツール
-publishMdFile: publish.md
+microsoftStoreUrl: https://apps.microsoft.com/detail/9PHTV9DGZRR2
+publishMdFile: README.md

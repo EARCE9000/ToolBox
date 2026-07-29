@@ -437,3 +437,6 @@ FodyWeavers.xsd
 # Exclude packaging project build artifacts
 **/obj/
 **/bin/
+
+# Local deployment helper script
+/deploy-app-docs.ps1

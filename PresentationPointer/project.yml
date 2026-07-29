@@ -23,4 +23,5 @@ features:
 relatedProjects:
   - name: ScreenAnnotation
     description: スクリーン注釈ツール
-publishMdFile: publish.md
+microsoftStoreUrl: https://apps.microsoft.com/detail/9NVS9CJKCQ8K
+publishMdFile: README.md
