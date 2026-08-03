@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <!-- Tooltips -->
+  <data name="Tooltip_Exit" xml:space="preserve"><value>Exit</value></data>
+  <data name="Tooltip_Clear" xml:space="preserve"><value>Clear All</value></data>
+  <data name="Tooltip_Save" xml:space="preserve"><value>Save (JSON)</value></data>
+  <data name="Tooltip_Load" xml:space="preserve"><value>Load (JSON)</value></data>
+  <data name="Tooltip_AddArrow" xml:space="preserve"><value>Add Arrow</value></data>
+  <data name="Tooltip_AddText" xml:space="preserve"><value>Add Speech Bubble</value></data>
+  <data name="Tooltip_NextDisplay" xml:space="preserve"><value>Switch Display</value></data>
+  <data name="Tooltip_Sleep" xml:space="preserve"><value>Break / Away</value></data>
+  <data name="Tooltip_Settings" xml:space="preserve"><value>Sleep Text Settings</value></data>
+  <data name="Tooltip_Information" xml:space="preserve"><value>Version Info</value></data>
+  <data name="Tooltip_Capture" xml:space="preserve"><value>Capture Screen (Save PNG)</value></data>
+
+  <!-- Exit dialog -->
+  <data name="Msg_ExitConfirm" xml:space="preserve"><value>Are you sure you want to exit?</value></data>
+  <data name="Title_ExitConfirm" xml:space="preserve"><value>ScreenAnnotation - Exit</value></data>
+
+  <!-- Clear dialog -->
+  <data name="Msg_ClearConfirm" xml:space="preserve"><value>Clear all annotations?</value></data>
+  <data name="Title_ClearConfirm" xml:space="preserve"><value>ScreenAnnotation - Clear</value></data>
+
+  <!-- Save messages -->
+  <data name="Msg_NoAnnotationsToSave" xml:space="preserve"><value>No annotations to save.</value></data>
+  <data name="Title_Info" xml:space="preserve"><value>ScreenAnnotation - Info</value></data>
+  <data name="Msg_SaveComplete" xml:space="preserve"><value>Saved to {0}</value></data>
+  <data name="Title_SaveComplete" xml:space="preserve"><value>ScreenAnnotation - Saved</value></data>
+  <data name="Msg_SaveError" xml:space="preserve"><value>Error saving file: {0}</value></data>
+  <data name="Title_Error" xml:space="preserve"><value>ScreenAnnotation - Error</value></data>
+
+  <!-- Load messages -->
+  <data name="Msg_LoadError" xml:space="preserve"><value>Error loading file: {0}</value></data>
+  <data name="Msg_LoadParseError" xml:space="preserve"><value>Failed to read the file.</value></data>
+
+  <!-- Capture messages -->
+  <data name="Msg_CaptureComplete" xml:space="preserve"><value>Saved to {0}</value></data>
+  <data name="Title_CaptureComplete" xml:space="preserve"><value>ScreenAnnotation - Capture Saved</value></data>
+  <data name="Msg_CaptureError" xml:space="preserve"><value>Error capturing screen: {0}</value></data>
+
+  <!-- Settings dialog -->
+  <data name="Settings_Title" xml:space="preserve"><value>Settings</value></data>
+  <data name="Settings_SleepTextLabel" xml:space="preserve"><value>Sleep Screen Text</value></data>
+  <data name="Settings_ShowResumeTime" xml:space="preserve"><value>Show resume time</value></data>
+  <data name="Settings_ToolbarScaleLabel" xml:space="preserve"><value>Toolbar Scale</value></data>
+  <data name="Settings_Save" xml:space="preserve"><value>Save</value></data>
+  <data name="Settings_Cancel" xml:space="preserve"><value>Cancel</value></data>
+
+  <!-- StatusWindow -->
+  <data name="Status_CurrentTime" xml:space="preserve"><value>Current Time</value></data>
+  <data name="Status_ResumeTime" xml:space="preserve"><value>Resume Time</value></data>
+  <data name="Status_ResumeTimeDialogTitle" xml:space="preserve"><value>Set Resume Time</value></data>
+  <data name="Status_ResumeTimeDialogLabel" xml:space="preserve"><value>Time (HH:mm):</value></data>
+  <data name="Status_Cancel" xml:space="preserve"><value>Cancel</value></data>
+</root>

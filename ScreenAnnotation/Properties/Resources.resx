@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <!-- Tooltips -->
+  <data name="Tooltip_Exit" xml:space="preserve"><value>終了</value></data>
+  <data name="Tooltip_Clear" xml:space="preserve"><value>全消去</value></data>
+  <data name="Tooltip_Save" xml:space="preserve"><value>保存（JSON）</value></data>
+  <data name="Tooltip_Load" xml:space="preserve"><value>読み込み（JSON）</value></data>
+  <data name="Tooltip_AddArrow" xml:space="preserve"><value>矢印を追加</value></data>
+  <data name="Tooltip_AddText" xml:space="preserve"><value>吹き出しを追加</value></data>
+  <data name="Tooltip_NextDisplay" xml:space="preserve"><value>ディスプレイを切り替え</value></data>
+  <data name="Tooltip_Sleep" xml:space="preserve"><value>休憩・離席</value></data>
+  <data name="Tooltip_Settings" xml:space="preserve"><value>スリープ表示テキスト設定</value></data>
+  <data name="Tooltip_Information" xml:space="preserve"><value>バージョン情報</value></data>
+  <data name="Tooltip_Capture" xml:space="preserve"><value>画面キャプチャ（PNG保存）</value></data>
+
+  <!-- Exit dialog -->
+  <data name="Msg_ExitConfirm" xml:space="preserve"><value>終了してもよろしいですか？</value></data>
+  <data name="Title_ExitConfirm" xml:space="preserve"><value>ScreenAnnotation - 終了確認</value></data>
+
+  <!-- Clear dialog -->
+  <data name="Msg_ClearConfirm" xml:space="preserve"><value>全ての注釈をクリアしてもよろしいですか？</value></data>
+  <data name="Title_ClearConfirm" xml:space="preserve"><value>ScreenAnnotation - クリア確認</value></data>
+
+  <!-- Save messages -->
+  <data name="Msg_NoAnnotationsToSave" xml:space="preserve"><value>保存する注釈がありません。</value></data>
+  <data name="Title_Info" xml:space="preserve"><value>ScreenAnnotation - 情報</value></data>
+  <data name="Msg_SaveComplete" xml:space="preserve"><value>Saved to {0}</value></data>
+  <data name="Title_SaveComplete" xml:space="preserve"><value>ScreenAnnotation - 保存完了</value></data>
+  <data name="Msg_SaveError" xml:space="preserve"><value>Error saving file: {0}</value></data>
+  <data name="Title_Error" xml:space="preserve"><value>ScreenAnnotation - エラー</value></data>
+
+  <!-- Load messages -->
+  <data name="Msg_LoadError" xml:space="preserve"><value>Error loading file: {0}</value></data>
+  <data name="Msg_LoadParseError" xml:space="preserve"><value>ファイルの読み込みに失敗しました。</value></data>
+
+  <!-- Capture messages -->
+  <data name="Msg_CaptureComplete" xml:space="preserve"><value>Saved to {0}</value></data>
+  <data name="Title_CaptureComplete" xml:space="preserve"><value>ScreenAnnotation - キャプチャ保存完了</value></data>
+  <data name="Msg_CaptureError" xml:space="preserve"><value>Error capturing screen: {0}</value></data>
+
+  <!-- Settings dialog -->
+  <data name="Settings_Title" xml:space="preserve"><value>設定</value></data>
+  <data name="Settings_SleepTextLabel" xml:space="preserve"><value>スリープ画面表示文</value></data>
+  <data name="Settings_ShowResumeTime" xml:space="preserve"><value>再開時刻を表示</value></data>
+  <data name="Settings_ToolbarScaleLabel" xml:space="preserve"><value>ツールバーのスケール</value></data>
+  <data name="Settings_Save" xml:space="preserve"><value>保存</value></data>
+  <data name="Settings_Cancel" xml:space="preserve"><value>キャンセル</value></data>
+
+  <!-- StatusWindow -->
+  <data name="Status_CurrentTime" xml:space="preserve"><value>現在時刻</value></data>
+  <data name="Status_ResumeTime" xml:space="preserve"><value>再開時刻</value></data>
+  <data name="Status_ResumeTimeDialogTitle" xml:space="preserve"><value>再開時間を設定</value></data>
+  <data name="Status_ResumeTimeDialogLabel" xml:space="preserve"><value>時刻 (HH:mm):</value></data>
+  <data name="Status_Cancel" xml:space="preserve"><value>キャンセル</value></data>
+</root>

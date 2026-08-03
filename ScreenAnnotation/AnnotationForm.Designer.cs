@@ -18,6 +18,8 @@ namespace ScreenAnnotation
             components = new System.ComponentModel.Container();
 
             // Form
+            AutoScaleDimensions = new SizeF(96F, 96F);
+            AutoScaleMode = AutoScaleMode.Dpi;
             this.Text = "ScreenAnnotation";
             this.Name = "AnnotationForm";
             this.StartPosition = FormStartPosition.Manual;

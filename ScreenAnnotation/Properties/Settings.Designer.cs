@@ -94,5 +94,29 @@ namespace ScreenAnnotation.Properties {
                 this["ShowResumeTime3"] = value;
             }
         }
+
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string LastDisplayDeviceName {
+            get {
+                return ((string)(this["LastDisplayDeviceName"]));
+            }
+            set {
+                this["LastDisplayDeviceName"] = value;
+            }
+        }
+
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("100")]
+        public int ToolbarScale {
+            get {
+                return ((int)(this["ToolbarScale"]));
+            }
+            set {
+                this["ToolbarScale"] = value;
+            }
+        }
     }
 }

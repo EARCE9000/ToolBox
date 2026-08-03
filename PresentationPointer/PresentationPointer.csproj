@@ -7,6 +7,7 @@
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
     <ApplicationIcon>ArrowIcon.ico</ApplicationIcon>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
     <Copyright>EARCE.NET</Copyright>
     <BuildTimestamp>$([System.DateTime]::UtcNow.ToString("yyyy-MM-dd HH:mm:ss 'UTC'"))</BuildTimestamp>
     <Platforms>AnyCPU;x64;ARM64</Platforms>
@@ -14,8 +15,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="ArrowIcon.png" />
-    <EmbeddedResource Include="DrawSpeechBubble.png" />
+    <EmbeddedResource Include="*.png" />
   </ItemGroup>
 
   <ItemGroup>

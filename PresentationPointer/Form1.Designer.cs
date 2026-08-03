@@ -82,11 +82,12 @@
             });
 
             // Form1
-            AutoScaleMode = AutoScaleMode.Font;
+            AutoScaleDimensions = new SizeF(96F, 96F);
+            AutoScaleMode = AutoScaleMode.Dpi;
             ClientSize = new Size(300, 300);
             ContextMenuStrip = contextMenuStrip;
             FormBorderStyle = FormBorderStyle.None;
-            StartPosition = FormStartPosition.CenterScreen;
+            StartPosition = FormStartPosition.Manual;
             Text = "PresentationPointer";
             TopMost = true;
 

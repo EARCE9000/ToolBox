@@ -50,6 +50,8 @@ namespace ScreenAnnotation
         public StatusWindow(Screen? screen = null, StatusType type = StatusType.Away)
         {
             InitializeComponent();
+            AutoScaleDimensions = new SizeF(96F, 96F);
+            AutoScaleMode = AutoScaleMode.Dpi;
 
             targetScreen = screen;
             statusType = type;
@@ -58,13 +60,7 @@ namespace ScreenAnnotation
 
             // Load escape button icon from embedded resources
             var assembly = Assembly.GetExecutingAssembly();
-            using (var stream = assembly.GetManifestResourceStream("ScreenAnnotation.EscapeButton.png"))
-            {
-                if (stream != null)
-                {
-                    escapeButtonIcon = Image.FromStream(stream);
-                }
-            }
+            escapeButtonIcon = DpiAwareImageLoader.Load(assembly, "ScreenAnnotation.EscapeButton.png", this);
 
             LoadClockImage("ScreenAnnotation.CountUpButton.png", out countUpButtonIcon);
             LoadClockImage("ScreenAnnotation.CountDownButton.png", out countDownButtonIcon);
@@ -219,7 +215,8 @@ namespace ScreenAnnotation
 
         private void InitializeComponent()
         {
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.ClientSize = new System.Drawing.Size(800, 600);
             this.Name = "StatusWindow";
         }
@@ -257,7 +254,7 @@ namespace ScreenAnnotation
             using (var font = new Font("Segoe UI", labelFontSize, FontStyle.Regular))
             using (var brush = new SolidBrush(Color.FromArgb(100, 80, 50)))
             {
-                e.Graphics.DrawString("現在時刻", font, brush, currentTimeLabelLeft, currentTimeLabelTop);
+                e.Graphics.DrawString(Properties.Resources.Status_CurrentTime, font, brush, currentTimeLabelLeft, currentTimeLabelTop);
             }
 
             // Draw current time value (HH:mm) at X:10%, Y:72%
@@ -277,7 +274,7 @@ namespace ScreenAnnotation
                 using (var font = new Font("Segoe UI", labelFontSize, FontStyle.Regular))
                 using (var brush = new SolidBrush(Color.FromArgb(200, 100, 50)))
                 {
-                    e.Graphics.DrawString("再開時刻", font, brush, resumeTimeLabelLeft, resumeTimeLabelTop);
+                    e.Graphics.DrawString(Properties.Resources.Status_ResumeTime, font, brush, resumeTimeLabelLeft, resumeTimeLabelTop);
                 }
 
                 // Draw resume time value (HH:mm) at X:25%, Y:72%
@@ -406,22 +403,7 @@ namespace ScreenAnnotation
 
         private void LoadClockImage(string resourceName, out Image? image)
         {
-            image = null;
-            try
-            {
-                var assembly = Assembly.GetExecutingAssembly();
-                using (var stream = assembly.GetManifestResourceStream(resourceName))
-                {
-                    if (stream != null)
-                    {
-                        image = Image.FromStream(stream);
-                    }
-                }
-            }
-            catch
-            {
-                // Resource not found or failed to load, image remains null
-            }
+            image = DpiAwareImageLoader.Load(Assembly.GetExecutingAssembly(), resourceName, this);
         }
 
         private void DrawResumeAdjustSpinner(Graphics g)
@@ -612,7 +594,7 @@ namespace ScreenAnnotation
             // Create a simple time picker dialog
             using (var form = new Form())
             {
-                form.Text = "再開時間を設定";
+                form.Text = Properties.Resources.Status_ResumeTimeDialogTitle;
                 form.Width = 300;
                 form.Height = 150;
                 form.StartPosition = FormStartPosition.CenterParent;
@@ -620,10 +602,10 @@ namespace ScreenAnnotation
                 form.MaximizeBox = false;
                 form.MinimizeBox = false;
 
-                var label = new Label() { Text = "時刻 (HH:mm):", Left = 10, Top = 10, Width = 270 };
+                var label = new Label() { Text = Properties.Resources.Status_ResumeTimeDialogLabel, Left = 10, Top = 10, Width = 270 };
                 var textBox = new TextBox() { Text = resumeTime.ToString("HH:mm"), Left = 10, Top = 35, Width = 270 };
                 var okButton = new Button() { Text = "OK", Left = 130, Top = 70, Width = 75, DialogResult = DialogResult.OK };
-                var cancelButton = new Button() { Text = "キャンセル", Left = 210, Top = 70, Width = 75, DialogResult = DialogResult.Cancel };
+                var cancelButton = new Button() { Text = Properties.Resources.Status_Cancel, Left = 210, Top = 70, Width = 75, DialogResult = DialogResult.Cancel };
 
                 form.Controls.Add(label);
                 form.Controls.Add(textBox);

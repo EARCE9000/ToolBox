@@ -25,6 +25,7 @@ namespace PresentationPointer
         {
             InitializeComponent();
             Load += Form1_Load;
+            Shown += Form1_Shown;
 
             this.Opacity = 1.0D;
             if (this.Size.Width < 200 || this.Size.Height < 200)
@@ -51,12 +52,10 @@ namespace PresentationPointer
             currentImageType = ImageType.Arrow;
             currentSize = 256;
             currentRotation = 0;
-            imageLocation = new Point((ClientSize.Width - currentSize) / 2, (ClientSize.Height - currentSize) / 2);
 
             LoadImage();
 
             ClientSize = new Size(currentSize, currentSize);
-            CenterToScreen();
 
             // Mouse events for dragging / speech text edit
             MouseDown += Form1_MouseDown;
@@ -67,23 +66,32 @@ namespace PresentationPointer
             UpdateContextMenuChecks();
         }
 
+        private void Form1_Shown(object? sender, EventArgs e)
+        {
+            CenterFormOnScreen();
+        }
+
+        private void CenterFormOnScreen()
+        {
+            Screen screen = Screen.FromControl(this);
+            Rectangle workingArea = screen.WorkingArea;
+            Location = new Point(
+                workingArea.Left + (workingArea.Width - Width) / 2,
+                workingArea.Top + (workingArea.Height - Height) / 2);
+        }
+
         private void LoadImage()
         {
             currentImage?.Dispose();
 
-            string resourceName = currentImageType == ImageType.Arrow 
+            string resourceName = currentImageType == ImageType.Arrow
                 ? "PresentationPointer.ArrowIcon.png"
                 : "PresentationPointer.DrawSpeechBubble.png";
 
-            using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName))
-            {
-                if (stream == null)
-                    throw new Exception($"Resource '{resourceName}' not found");
+            using Image? originalImage = DpiAwareImageLoader.Load(Assembly.GetExecutingAssembly(), resourceName, this)
+                ?? throw new Exception($"Resource '{resourceName}' not found");
 
-                var originalImage = Image.FromStream(stream);
-                currentImage = ResizeAndRotateImage(originalImage, currentSize, currentRotation);
-            }
-
+            currentImage = ResizeAndRotateImage(originalImage, currentSize, currentRotation);
             Invalidate();
         }
 

@@ -46,6 +46,9 @@ namespace ScreenAnnotation
         private TextPanel? draggingTextPanel = null;
         private Point dragOffset;
         private string lastSavedAnnotationSnapshot = string.Empty;
+        private System.Windows.Forms.Timer? _placementTimer;
+        private Screen? _lastKnownScreen;
+        private Rectangle _lastKnownWorkingArea;
 
         private const int ENUM_CURRENT_SETTINGS = -1;
 
@@ -124,115 +127,29 @@ namespace ScreenAnnotation
         public AnnotationForm()
         {
             InitializeComponent();
+            Load += AnnotationForm_Load;
+            Shown += AnnotationForm_Shown;
 
             // Load images from embedded resources
-            var assembly = System.Reflection.Assembly.GetExecutingAssembly();
+            var assembly = Assembly.GetExecutingAssembly();
 
-            using (var stream = assembly.GetManifestResourceStream("ScreenAnnotation.ArrowIcon.png"))
-            {
-                if (stream != null)
-                {
-                    arrowImage = Image.FromStream(stream);
-                }
-            }
-
-            using (var stream = assembly.GetManifestResourceStream("ScreenAnnotation.DrawSpeechBubble.png"))
-            {
-                if (stream != null)
-                {
-                    speechBubbleImage = Image.FromStream(stream);
-                }
-            }
-
-            using (var stream = assembly.GetManifestResourceStream("ScreenAnnotation.ArrowIconButton.png"))
-            {
-                if (stream != null)
-                {
-                    arrowButtonIcon = Image.FromStream(stream);
-                }
-            }
-
-            using (var stream = assembly.GetManifestResourceStream("ScreenAnnotation.DrawSpeechBubbleButton.png"))
-            {
-                if (stream != null)
-                {
-                    speechBubbleButtonIcon = Image.FromStream(stream);
-                }
-            }
-
-            using (var stream = assembly.GetManifestResourceStream("ScreenAnnotation.ExitButton.png"))
-            {
-                if (stream != null)
-                {
-                    exitButtonIcon = Image.FromStream(stream);
-                }
-            }
-
-            using (var stream = assembly.GetManifestResourceStream("ScreenAnnotation.ClearButton.png"))
-            {
-                if (stream != null)
-                {
-                    clearButtonIcon = Image.FromStream(stream);
-                }
-            }
-
-            using (var stream = assembly.GetManifestResourceStream("ScreenAnnotation.SaveButton.png"))
-            {
-                if (stream != null)
-                {
-                    saveButtonIcon = Image.FromStream(stream);
-                }
-            }
-
-            using (var stream = assembly.GetManifestResourceStream("ScreenAnnotation.LoadButton.png"))
-            {
-                if (stream != null)
-                {
-                    loadButtonIcon = Image.FromStream(stream);
-                }
-            }
-
-            using (var stream = assembly.GetManifestResourceStream("ScreenAnnotation.DisplayChange.png"))
-            {
-                if (stream != null)
-                {
-                    displayChangeButtonIcon = Image.FromStream(stream);
-                }
-            }
-
-            using (var stream = assembly.GetManifestResourceStream("ScreenAnnotation.InformationButton.png"))
-            {
-                if (stream != null)
-                {
-                    informationButtonIcon = Image.FromStream(stream);
-                }
-            }
-
-            using (var stream = assembly.GetManifestResourceStream("ScreenAnnotation.SleepButton.png"))
-            {
-                if (stream != null)
-                {
-                    sleepButtonIcon = Image.FromStream(stream);
-                }
-            }
-
-            using (var stream = assembly.GetManifestResourceStream("ScreenAnnotation.SettingButton.png"))
-            {
-                if (stream != null)
-                {
-                    settingButtonIcon = Image.FromStream(stream);
-                }
-            }
-
-            using (var stream = assembly.GetManifestResourceStream("ScreenAnnotation.CaptureButton.png"))
-            {
-                if (stream != null)
-                {
-                    captureButtonIcon = Image.FromStream(stream);
-                }
-            }
+            arrowImage = DpiAwareImageLoader.Load(assembly, "ScreenAnnotation.ArrowIcon.png", this);
+            speechBubbleImage = DpiAwareImageLoader.Load(assembly, "ScreenAnnotation.DrawSpeechBubble.png", this);
+            arrowButtonIcon = DpiAwareImageLoader.Load(assembly, "ScreenAnnotation.ArrowIconButton.png", this);
+            speechBubbleButtonIcon = DpiAwareImageLoader.Load(assembly, "ScreenAnnotation.DrawSpeechBubbleButton.png", this);
+            exitButtonIcon = DpiAwareImageLoader.Load(assembly, "ScreenAnnotation.ExitButton.png", this);
+            clearButtonIcon = DpiAwareImageLoader.Load(assembly, "ScreenAnnotation.ClearButton.png", this);
+            saveButtonIcon = DpiAwareImageLoader.Load(assembly, "ScreenAnnotation.SaveButton.png", this);
+            loadButtonIcon = DpiAwareImageLoader.Load(assembly, "ScreenAnnotation.LoadButton.png", this);
+            displayChangeButtonIcon = DpiAwareImageLoader.Load(assembly, "ScreenAnnotation.DisplayChange.png", this);
+            informationButtonIcon = DpiAwareImageLoader.Load(assembly, "ScreenAnnotation.InformationButton.png", this);
+            sleepButtonIcon = DpiAwareImageLoader.Load(assembly, "ScreenAnnotation.SleepButton.png", this);
+            settingButtonIcon = DpiAwareImageLoader.Load(assembly, "ScreenAnnotation.SettingButton.png", this);
+            captureButtonIcon = DpiAwareImageLoader.Load(assembly, "ScreenAnnotation.CaptureButton.png", this);
 
             // Setup form
+            this.AutoScaleDimensions = new SizeF(96F, 96F);
+            this.AutoScaleMode = AutoScaleMode.None;
             this.FormBorderStyle = FormBorderStyle.None;
             this.WindowState = FormWindowState.Maximized;
             this.TopMost = true;
@@ -424,17 +341,17 @@ namespace ScreenAnnotation
             toolbarPanel.Controls.Add(informationButton);
 
             // ToolTips
-            toolTip.SetToolTip(exitButton,        "終了");
-            toolTip.SetToolTip(clearButton,       "全消去");
-            toolTip.SetToolTip(saveButton,        "保存（JSON）");
-            toolTip.SetToolTip(loadButton,        "読み込み（JSON）");
-            toolTip.SetToolTip(addArrowButton,    "矢印を追加");
-            toolTip.SetToolTip(addTextButton,     "吹き出しを追加");
-            toolTip.SetToolTip(nextDisplayButton, "ディスプレイを切り替え");
-            toolTip.SetToolTip(sleepButton,       "休憩・離席");
-            toolTip.SetToolTip(settingButton,     "スリープ表示テキスト設定");
-            toolTip.SetToolTip(informationButton, "バージョン情報");
-            toolTip.SetToolTip(captureButton,     "画面キャプチャ（PNG保存）");
+            toolTip.SetToolTip(exitButton,        Properties.Resources.Tooltip_Exit);
+            toolTip.SetToolTip(clearButton,       Properties.Resources.Tooltip_Clear);
+            toolTip.SetToolTip(saveButton,        Properties.Resources.Tooltip_Save);
+            toolTip.SetToolTip(loadButton,        Properties.Resources.Tooltip_Load);
+            toolTip.SetToolTip(addArrowButton,    Properties.Resources.Tooltip_AddArrow);
+            toolTip.SetToolTip(addTextButton,     Properties.Resources.Tooltip_AddText);
+            toolTip.SetToolTip(nextDisplayButton, Properties.Resources.Tooltip_NextDisplay);
+            toolTip.SetToolTip(sleepButton,       Properties.Resources.Tooltip_Sleep);
+            toolTip.SetToolTip(settingButton,     Properties.Resources.Tooltip_Settings);
+            toolTip.SetToolTip(informationButton, Properties.Resources.Tooltip_Information);
+            toolTip.SetToolTip(captureButton,     Properties.Resources.Tooltip_Capture);
 
             // Mouse events
             this.MouseDown += AnnotationForm_MouseDown;
@@ -451,9 +368,62 @@ namespace ScreenAnnotation
 
         private void AnnotationForm_Resize(object? sender, EventArgs e)
         {
-            // Recalculate toolbar panel position based on current form height
-            int toolbarY = this.Height - 70;
-            toolbarPanel.Location = new Point(10, toolbarY);
+            // Recalculate toolbar panel position based on current client area height
+            int toolbarY = this.ClientSize.Height - toolbarPanel.Height - 10;
+            toolbarPanel.Location = new Point(10, Math.Max(0, toolbarY));
+        }
+
+        private void ApplyToolbarScale(int scalePercent)
+        {
+            // scalePercent: 50, 75, or 100
+            float scale = scalePercent / 100f;
+            int btnSize = (int)(50 * scale);
+            int btnPadding = (int)(5 * scale);
+            int btnStep = (int)(60 * scale);
+            int panelHeight = btnSize + btnPadding * 2;
+            int panelWidth = btnStep * 10 + btnSize + btnPadding * 2;
+
+            toolbarPanel.Size = new Size(panelWidth, panelHeight);
+
+            // Pair each button with its source icon image
+            var buttonIconPairs = new (Button btn, Image? icon)[]
+            {
+                (exitButton,        exitButtonIcon),
+                (clearButton,       clearButtonIcon),
+                (saveButton,        saveButtonIcon),
+                (loadButton,        loadButtonIcon),
+                (captureButton,     captureButtonIcon),
+                (addArrowButton,    arrowButtonIcon),
+                (addTextButton,     speechBubbleButtonIcon),
+                (nextDisplayButton, displayChangeButtonIcon),
+                (sleepButton,       sleepButtonIcon),
+                (settingButton,     settingButtonIcon),
+                (informationButton, informationButtonIcon),
+            };
+
+            for (int i = 0; i < buttonIconPairs.Length; i++)
+            {
+                var (btn, icon) = buttonIconPairs[i];
+                btn.Size = new Size(btnSize, btnSize);
+                btn.Location = new Point(btnPadding + i * btnStep, btnPadding);
+
+                // Scale the icon to fit exactly inside the button with a small inset
+                int iconSize = Math.Max(1, btnSize - 4);
+                btn.Image = icon != null ? ResizeImage(icon, iconSize, iconSize) : null;
+                btn.ImageAlign = ContentAlignment.MiddleCenter;
+            }
+        }
+
+        /// <summary>高品質リサンプリングで画像を指定サイズにリサイズする。</summary>
+        private static Bitmap ResizeImage(Image source, int width, int height)
+        {
+            var dest = new Bitmap(width, height);
+            using var g = Graphics.FromImage(dest);
+            g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+            g.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.HighQuality;
+            g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
+            g.DrawImage(source, new Rectangle(0, 0, width, height));
+            return dest;
         }
 
         private void AddArrowButton_Click(object? sender, EventArgs e)
@@ -523,11 +493,11 @@ namespace ScreenAnnotation
                 string filePath = Path.Combine(screenshotsDirectory, $"ScreenAnnotation_{DateTime.Now:yyyyMMdd_HHmmss}.png");
                 bitmap.Save(filePath, System.Drawing.Imaging.ImageFormat.Png);
 
-                MessageBox.Show($"Saved to {filePath}", "ScreenAnnotation - キャプチャ保存完了", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show(string.Format(Properties.Resources.Msg_CaptureComplete, filePath), Properties.Resources.Title_CaptureComplete, MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error capturing screen: {ex.Message}", "ScreenAnnotation - エラー", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(string.Format(Properties.Resources.Msg_CaptureError, ex.Message), Properties.Resources.Title_Error, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -562,7 +532,7 @@ namespace ScreenAnnotation
                 var data = JsonSerializer.Deserialize<AnnotationSaveData>(json);
                 if (data == null)
                 {
-                    MessageBox.Show("ファイルの読み込みに失敗しました。", "ScreenAnnotation - エラー", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show(Properties.Resources.Msg_LoadParseError, Properties.Resources.Title_Error, MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return;
                 }
 
@@ -589,7 +559,7 @@ namespace ScreenAnnotation
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error loading file: {ex.Message}", "ScreenAnnotation - エラー", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(string.Format(Properties.Resources.Msg_LoadError, ex.Message), Properties.Resources.Title_Error, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -643,28 +613,34 @@ namespace ScreenAnnotation
         {
             using var form = new Form
             {
-                Text = "設定",
+                Text = Properties.Resources.Settings_Title,
                 Width = 640,
-                Height = 270,
+                Height = 360,
                 StartPosition = FormStartPosition.CenterParent,
                 FormBorderStyle = FormBorderStyle.FixedDialog,
                 MaximizeBox = false,
                 MinimizeBox = false
             };
 
-            var titleLabel = new Label { Text = "スリープ画面表示文", Left = 16, Top = 16, Width = 180 };
-            var lbl1 = new Label { Text = "１）", Left = 16, Top = 50, Width = 40 };
+            var titleLabel = new Label { Text = Properties.Resources.Settings_SleepTextLabel, Left = 16, Top = 16, Width = 180 };
+            var lbl1 = new Label { Text = "1)", Left = 16, Top = 50, Width = 40 };
             var txt1 = new TextBox { Left = 64, Top = 46, Width = 330, MaxLength = 10, Text = Properties.Settings.Default.SleepWord1 };
-            var toggle1 = new CheckBox { Left = 410, Top = 48, Width = 200, Text = "再開時刻を表示", Checked = Properties.Settings.Default.ShowResumeTime1 };
-            var lbl2 = new Label { Text = "２）", Left = 16, Top = 90, Width = 40 };
+            var toggle1 = new CheckBox { Left = 410, Top = 48, Width = 200, Text = Properties.Resources.Settings_ShowResumeTime, Checked = Properties.Settings.Default.ShowResumeTime1 };
+            var lbl2 = new Label { Text = "2)", Left = 16, Top = 90, Width = 40 };
             var txt2 = new TextBox { Left = 64, Top = 86, Width = 330, MaxLength = 10, Text = Properties.Settings.Default.SleepWord2 };
-            var toggle2 = new CheckBox { Left = 410, Top = 88, Width = 200, Text = "再開時刻を表示", Checked = Properties.Settings.Default.ShowResumeTime2 };
-            var lbl3 = new Label { Text = "３）", Left = 16, Top = 130, Width = 40 };
+            var toggle2 = new CheckBox { Left = 410, Top = 88, Width = 200, Text = Properties.Resources.Settings_ShowResumeTime, Checked = Properties.Settings.Default.ShowResumeTime2 };
+            var lbl3 = new Label { Text = "3)", Left = 16, Top = 130, Width = 40 };
             var txt3 = new TextBox { Left = 64, Top = 126, Width = 330, MaxLength = 10, Text = Properties.Settings.Default.SleepWord3 };
-            var toggle3 = new CheckBox { Left = 410, Top = 128, Width = 200, Text = "再開時刻を表示", Checked = Properties.Settings.Default.ShowResumeTime3 };
+            var toggle3 = new CheckBox { Left = 410, Top = 128, Width = 200, Text = Properties.Resources.Settings_ShowResumeTime, Checked = Properties.Settings.Default.ShowResumeTime3 };
 
-            var okButton = new Button { Text = "保存", Left = 450, Top = 170, Width = 75, Height = 32, DialogResult = DialogResult.OK };
-            var cancelButton = new Button { Text = "キャンセル", Left = 535, Top = 170, Width = 75, Height = 32, DialogResult = DialogResult.Cancel };
+            var scaleLabel = new Label { Text = Properties.Resources.Settings_ToolbarScaleLabel, Left = 16, Top = 180, Width = 160 };
+            int savedScale = Properties.Settings.Default.ToolbarScale;
+            var scale50 = new RadioButton { Text = "50%", Left = 190, Top = 178, Width = 60, Checked = savedScale == 50 };
+            var scale75 = new RadioButton { Text = "75%", Left = 260, Top = 178, Width = 60, Checked = savedScale == 75 };
+            var scale100 = new RadioButton { Text = "100%", Left = 330, Top = 178, Width = 65, Checked = savedScale == 100 || (savedScale != 50 && savedScale != 75) };
+
+            var okButton = new Button { Text = Properties.Resources.Settings_Save, Left = 450, Top = 260, Width = 75, Height = 32, DialogResult = DialogResult.OK };
+            var cancelButton = new Button { Text = Properties.Resources.Settings_Cancel, Left = 535, Top = 260, Width = 75, Height = 32, DialogResult = DialogResult.Cancel };
 
             form.Controls.Add(titleLabel);
             form.Controls.Add(lbl1);
@@ -676,6 +652,10 @@ namespace ScreenAnnotation
             form.Controls.Add(lbl3);
             form.Controls.Add(txt3);
             form.Controls.Add(toggle3);
+            form.Controls.Add(scaleLabel);
+            form.Controls.Add(scale50);
+            form.Controls.Add(scale75);
+            form.Controls.Add(scale100);
             form.Controls.Add(okButton);
             form.Controls.Add(cancelButton);
             form.AcceptButton = okButton;
@@ -692,7 +672,84 @@ namespace ScreenAnnotation
             Properties.Settings.Default.ShowResumeTime1 = toggle1.Checked;
             Properties.Settings.Default.ShowResumeTime2 = toggle2.Checked;
             Properties.Settings.Default.ShowResumeTime3 = toggle3.Checked;
+
+            int newScale = scale50.Checked ? 50 : scale75.Checked ? 75 : 100;
+            Properties.Settings.Default.ToolbarScale = newScale;
             Properties.Settings.Default.Save();
+
+            ApplyToolbarScale(newScale);
+            AnnotationForm_Resize(this, EventArgs.Empty);
+        }
+
+        private void AnnotationForm_Load(object? sender, EventArgs e)
+        {
+            ApplyToolbarScale(Properties.Settings.Default.ToolbarScale);
+
+            // Start a 1-second timer that continuously monitors which screen the
+            // window is on and corrects its bounds and toolbar position automatically.
+            _placementTimer = new System.Windows.Forms.Timer { Interval = 1000 };
+            _placementTimer.Tick += PlacementTimer_Tick;
+            _placementTimer.Start();
+        }
+
+        private void AnnotationForm_Shown(object? sender, EventArgs e)
+        {
+            PositionOnPreferredScreen();
+        }
+
+        private void PlacementTimer_Tick(object? sender, EventArgs e)
+        {
+            // Determine which screen the centre of the window is currently on.
+            Screen current = Screen.FromPoint(
+                new Point(this.Left + this.Width / 2, this.Top + this.Height / 2));
+
+            // If the screen or its working area has changed, refit the window.
+            if (!ReferenceEquals(current, _lastKnownScreen) ||
+                current.WorkingArea != _lastKnownWorkingArea)
+            {
+                _lastKnownScreen = current;
+                _lastKnownWorkingArea = current.WorkingArea;
+                ApplyScreenPlacement(current, persistSelection: false);
+            }
+        }
+
+        private void PositionOnPreferredScreen()
+        {
+            string? savedDeviceName = Properties.Settings.Default.LastDisplayDeviceName;
+            if (!string.IsNullOrWhiteSpace(savedDeviceName))
+            {
+                Screen? savedScreen = Screen.AllScreens.FirstOrDefault(screen =>
+                    string.Equals(screen.DeviceName, savedDeviceName, StringComparison.OrdinalIgnoreCase));
+
+                if (savedScreen != null)
+                {
+                    ApplyScreenPlacement(savedScreen, persistSelection: false);
+                    return;
+                }
+            }
+
+            ApplyScreenPlacement(Screen.FromPoint(Cursor.Position), persistSelection: false);
+        }
+
+        private void ApplyScreenPlacement(Screen screen, bool persistSelection)
+        {
+            this.WindowState = FormWindowState.Normal;
+            this.Bounds = screen.WorkingArea;
+
+            // Re-generate icon bitmaps at the current toolbar scale so they
+            // render correctly regardless of the target monitor's DPI/resolution.
+            ApplyToolbarScale(Properties.Settings.Default.ToolbarScale);
+            AnnotationForm_Resize(this, EventArgs.Empty);
+
+            // Update cache so the timer does not immediately re-trigger.
+            _lastKnownScreen = screen;
+            _lastKnownWorkingArea = screen.WorkingArea;
+
+            if (persistSelection)
+            {
+                Properties.Settings.Default.LastDisplayDeviceName = screen.DeviceName;
+                Properties.Settings.Default.Save();
+            }
         }
 
         private void MoveToNextDisplay()
@@ -717,25 +774,15 @@ namespace ScreenAnnotation
             int nextIndex = (currentDisplayIndex + 1) % screens.Length;
             Screen nextScreen = screens[nextIndex];
 
-            // Temporarily disable maximized state to change location and size
-            FormWindowState previousState = this.WindowState;
-            this.WindowState = FormWindowState.Normal;
-
-            // Set location to next screen
-            this.Location = nextScreen.WorkingArea.Location;
-
-            // Set size to match the next screen's working area
-            this.Size = nextScreen.WorkingArea.Size;
-
-            // Restore to Maximized state
-            this.WindowState = previousState;
+            ApplyScreenPlacement(nextScreen, persistSelection: true);
         }
 
         private void ExitButton_Click(object? sender, EventArgs e)
         {
+            _placementTimer?.Stop();
             var result = MessageBox.Show(
-                "終了してもよろしいですか？",
-                "ScreenAnnotation - 終了確認",
+                Properties.Resources.Msg_ExitConfirm,
+                Properties.Resources.Title_ExitConfirm,
                 MessageBoxButtons.OKCancel,
                 MessageBoxIcon.Question
             );
@@ -761,8 +808,8 @@ namespace ScreenAnnotation
             }
 
             var result = MessageBox.Show(
-                "全ての注釈をクリアしてもよろしいですか？",
-                "ScreenAnnotation - クリア確認",
+                Properties.Resources.Msg_ClearConfirm,
+                Properties.Resources.Title_ClearConfirm,
                 MessageBoxButtons.OKCancel,
                 MessageBoxIcon.Question
             );
@@ -782,7 +829,7 @@ namespace ScreenAnnotation
         {
             if (textPanels.Count == 0 && imageAnnotations.Count == 0)
             {
-                MessageBox.Show("保存する注釈がありません。", "ScreenAnnotation - 情報", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show(Properties.Resources.Msg_NoAnnotationsToSave, Properties.Resources.Title_Info, MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
 
@@ -807,11 +854,11 @@ namespace ScreenAnnotation
                 string json = JsonSerializer.Serialize(data, options);
                 System.IO.File.WriteAllText(saveDialog.FileName, json);
                 lastSavedAnnotationSnapshot = CreateCurrentAnnotationSnapshot();
-                MessageBox.Show($"Saved to {saveDialog.FileName}", "ScreenAnnotation - 保存完了", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show(string.Format(Properties.Resources.Msg_SaveComplete, saveDialog.FileName), Properties.Resources.Title_SaveComplete, MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error saving file: {ex.Message}", "ScreenAnnotation - エラー", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(string.Format(Properties.Resources.Msg_SaveError, ex.Message), Properties.Resources.Title_Error, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
